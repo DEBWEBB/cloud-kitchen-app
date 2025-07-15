@@ -11,7 +11,7 @@ import { getStorage } from "firebase/storage";
 
 // ✅ Firebase Config
 const firebaseConfig = {
-  apiKey: "***REMOVED***SyCqNo_01sglnl5Fh5atIaOYa--rWTCAyYA",
+  apiKey: "AIzaSyCqNo_01sglnl5Fh5atIaOYa--rWTCAyYA",
   authDomain: "cloud-kitchen-2cfbc.firebaseapp.com",
   projectId: "cloud-kitchen-2cfbc",
   storageBucket: "cloud-kitchen-2cfbc.appspot.com",

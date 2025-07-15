@@ -4,7 +4,7 @@ importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-com
 
 // ✅ Initialize Firebase App
 firebase.initializeApp({
-  apiKey: "***REMOVED***SyCqNo_01sglnl5Fh5atIaOYa--rWTCAyYA",
+  apiKey: "AIzaSyCqNo_01sglnl5Fh5atIaOYa--rWTCAyYA",
   authDomain: "cloud-kitchen-2cfbc.firebaseapp.com",
   projectId: "cloud-kitchen-2cfbc",
   storageBucket: "cloud-kitchen-2cfbc.appspot.com",
