@@ -1,16 +1,24 @@
+// src/components/PrivateRoute.jsx
 import React from "react";
 import { Navigate } from "react-router-dom";
-import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "../firebase/firebaseConfig";
+import { useAuth } from "../context/AuthContext";
 
 const PrivateRoute = ({ children }) => {
-  const [user, loading] = useAuthState(auth);
+  const { user, isAnonymous } = useAuth();
 
-  if (loading) {
-    return <div className="text-center p-10 text-xl">Checking login status...</div>;
+  if (user === null) {
+    return (
+      <div className="flex justify-center items-center h-screen text-xl">
+        🔐 Checking authentication...
+      </div>
+    );
   }
 
-  return user ? children : <Navigate to="/login" />;
+  if (!user || isAnonymous) {
+    return <Navigate to="/login" />;
+  }
+
+  return children;
 };
 
 export default PrivateRoute;

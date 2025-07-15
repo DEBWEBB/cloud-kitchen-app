@@ -1,20 +1,27 @@
-// src/context/CartContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
 import { db, auth } from "../firebase/firebaseConfig";
 import { doc, setDoc, onSnapshot } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 const CartContext = createContext();
 export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
-  const user = auth.currentUser;
+  const [userId, setUserId] = useState(null);
 
-  const userRef = user ? doc(db, "users", user.uid, "cart", "current") : null;
-
-  // 🔁 Sync cart from Firestore
   useEffect(() => {
-    if (!userRef) return;
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) setUserId(user.uid);
+      else setUserId(null);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const userRef = doc(db, "users", userId, "cart", "current");
 
     const unsub = onSnapshot(userRef, (docSnap) => {
       if (docSnap.exists()) {
@@ -23,16 +30,15 @@ export const CartProvider = ({ children }) => {
     });
 
     return () => unsub();
-  }, [userRef]);
+  }, [userId]);
 
-  // 🧠 Save cart to Firestore
   const saveCart = async (items) => {
-    if (userRef) {
+    if (userId) {
+      const userRef = doc(db, "users", userId, "cart", "current");
       await setDoc(userRef, { items });
     }
   };
 
-  // ➕ Add item to cart
   const addToCart = (item) => {
     const exists = cart.find((i) => i.id === item.id);
     let updated;
@@ -49,12 +55,11 @@ export const CartProvider = ({ children }) => {
     saveCart(updated);
   };
 
-  // ➖ Remove from cart
   const removeFromCart = (itemId) => {
     const exists = cart.find((i) => i.id === itemId);
     let updated;
 
-    if (exists.quantity > 1) {
+    if (exists && exists.quantity > 1) {
       updated = cart.map((i) =>
         i.id === itemId ? { ...i, quantity: i.quantity - 1 } : i
       );
@@ -66,7 +71,6 @@ export const CartProvider = ({ children }) => {
     saveCart(updated);
   };
 
-  // 🔁 Update quantity directly
   const updateQuantity = (itemId, newQty) => {
     if (newQty < 1) return;
     const updated = cart.map((i) =>
@@ -76,7 +80,6 @@ export const CartProvider = ({ children }) => {
     saveCart(updated);
   };
 
-  // ❌ Clear entire cart
   const clearCart = () => {
     setCart([]);
     saveCart([]);

@@ -1,139 +1,62 @@
 // src/pages/Cart.jsx
 import { useCart } from "../context/CartContext";
+import { useNavigate } from "react-router-dom";
 
 const Cart = () => {
   const { cart, addToCart, removeFromCart, clearCart } = useCart();
+  const navigate = useNavigate();
 
-  const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalPrice = cart.reduce((sum, item) => sum + item.price * (item.qty || item.quantity || 1), 0);
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.heading}>🛒 Your Cart</h2>
+    <div className="min-h-screen pt-20 px-6 pb-10 bg-white dark:bg-gray-900 text-black dark:text-white">
+      <h2 className="text-2xl font-bold mb-6">🛒 Your Cart</h2>
 
       {cart.length === 0 ? (
-        <p style={styles.empty}>Your cart is empty.</p>
+        <p className="text-lg text-center text-gray-500 dark:text-gray-400">Your cart is empty.</p>
       ) : (
         <>
-          <div style={styles.cartList}>
+          <div className="space-y-6">
             {cart.map((item) => (
-              <div key={item.id} style={styles.card}>
-                <img src={item.image} alt={item.name} style={styles.image} />
-                <div style={{ flex: 1 }}>
-                  <h3 style={styles.title}>{item.name}</h3>
-                  <p style={styles.desc}>{item.description}</p>
-                  <p style={styles.price}>₹{item.price}</p>
-                  <div style={styles.qtyRow}>
-                    <button onClick={() => removeFromCart(item.id)} style={styles.qtyBtn}>−</button>
-                    <span style={styles.qty}>{item.quantity}</span>
-                    <button onClick={() => addToCart(item)} style={styles.qtyBtn}>+</button>
-                    <button onClick={() => removeFromCart(item.id)} style={styles.removeBtn}>❌</button>
+              <div key={item.id} className="flex gap-4 items-start p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
+                <img src={item.image} alt={item.name} className="w-24 h-24 object-cover rounded" />
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold">{item.name}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{item.description}</p>
+                  <p className="font-semibold mt-1">₹{item.price}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <button
+                      onClick={() => removeFromCart(item.id)}
+                      className="bg-gray-300 dark:bg-gray-600 px-2 py-1 rounded text-black dark:text-white"
+                    >−</button>
+                    <span className="px-2 font-semibold">{item.qty || item.quantity}</span>
+                    <button
+                      onClick={() => addToCart(item)}
+                      className="bg-gray-300 dark:bg-gray-600 px-2 py-1 rounded text-black dark:text-white"
+                    >+</button>
+                    <button
+                      onClick={() => removeFromCart(item.id)}
+                      className="ml-auto text-red-600 hover:text-red-800"
+                    >❌</button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
 
-          <div style={styles.summary}>
-            <h3>Total: ₹{totalPrice}</h3>
-            <button style={styles.placeBtn} onClick={clearCart}>Place Order</button>
+          <div className="mt-10 text-right">
+            <h3 className="text-xl font-bold">Total: ₹{totalPrice}</h3>
+            <button
+              onClick={() => navigate("/checkout")}
+              className="mt-4 px-6 py-3 bg-pink-600 text-white rounded hover:bg-pink-700"
+            >
+              Proceed to Checkout
+            </button>
           </div>
         </>
       )}
     </div>
   );
-};
-
-const styles = {
-  container: {
-    padding: "30px",
-    maxWidth: "900px",
-    margin: "auto",
-  },
-  heading: {
-    fontSize: "2rem",
-    fontWeight: "bold",
-    marginBottom: "20px",
-    color: "#e91e63",
-  },
-  empty: {
-    fontSize: "1.2rem",
-    textAlign: "center",
-    color: "#777",
-  },
-  cartList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "20px",
-  },
-  card: {
-    display: "flex",
-    gap: "20px",
-    padding: "20px",
-    background: "#fff",
-    borderRadius: "10px",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-  },
-  image: {
-    width: "100px",
-    height: "100px",
-    objectFit: "cover",
-    borderRadius: "10px",
-  },
-  title: {
-    margin: 0,
-    fontWeight: "bold",
-    fontSize: "1.1rem",
-  },
-  desc: {
-    fontSize: "0.9rem",
-    color: "#666",
-    marginBottom: "8px",
-  },
-  price: {
-    fontWeight: "bold",
-    color: "#222",
-  },
-  qtyRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    marginTop: "10px",
-  },
-  qtyBtn: {
-    padding: "4px 10px",
-    fontSize: "1rem",
-    backgroundColor: "#eee",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-  },
-  qty: {
-    fontWeight: "bold",
-    minWidth: "20px",
-    textAlign: "center",
-  },
-  removeBtn: {
-    marginLeft: "auto",
-    background: "transparent",
-    border: "none",
-    color: "#e91e63",
-    fontSize: "1.2rem",
-    cursor: "pointer",
-  },
-  summary: {
-    marginTop: "30px",
-    textAlign: "right",
-  },
-  placeBtn: {
-    marginTop: "10px",
-    backgroundColor: "#e91e63",
-    color: "#fff",
-    padding: "10px 20px",
-    border: "none",
-    fontWeight: "bold",
-    borderRadius: "5px",
-    cursor: "pointer",
-  },
 };
 
 export default Cart;

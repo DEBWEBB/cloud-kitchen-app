@@ -1,6 +1,7 @@
 // src/pages/Home.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -9,12 +10,12 @@ const Home = () => {
     {
       id: "mio",
       name: "Mio Amore",
-      image: "./assets/mioamore.jpg",
+      image: "./src/assets/mioamore.jpeg",
     },
     {
       id: "monginis",
       name: "Monginis",
-      image: "./assets/monginis.jpg",
+      image: "./src/assets/monginis.png",
     },
   ];
 
@@ -26,25 +27,53 @@ const Home = () => {
   ];
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>Welcome to HungryBox 🍰</h1>
-      <p style={styles.quote}>{quotes[Math.floor(Math.random() * quotes.length)]}</p>
+    <div className="min-h-screen flex flex-col items-center justify-start px-4 pt-10 dark:bg-gray-900 bg-white text-gray-800 dark:text-white transition duration-300">
+      <motion.h1
+        className="text-4xl md:text-5xl font-bold text-center text-pink-600 flex items-center gap-2"
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+      >
+        🍰 Welcome to HungryBox
+      </motion.h1>
 
-      <div style={styles.grid}>
-        {stores.map((store) => (
-          <div
+      <motion.p
+        className="text-center text-lg mt-3 italic text-gray-600 dark:text-gray-300"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
+      >
+        {quotes[Math.floor(Math.random() * quotes.length)]}
+      </motion.p>
+
+      <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl px-4">
+        {stores.map((store, index) => (
+          <motion.div
             key={store.id}
-            style={styles.card}
+            className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition transform hover:scale-105 cursor-pointer border dark:border-gray-700"
             onClick={() => navigate(`/shop/${store.id}`)}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 + index * 0.2 }}
           >
-            <img src={store.image} alt={store.name} style={styles.image} />
-            <h3>{store.name}</h3>
-          </div>
+            <img
+              src={store.image}
+              alt={store.name}
+              className="w-full h-52 object-cover"
+            />
+            <div className="p-5 text-center">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                {store.name}
+              </h3>
+            </div>
+          </motion.div>
         ))}
       </div>
     </div>
   );
 };
+
+
 
 const styles = {
   container: {

@@ -1,70 +1,192 @@
-import React, { useEffect, useState } from "react";
-import { auth } from "../firebase/firebaseConfig";
-import { signOut } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+
+// src/pages/Profile.jsx
+import React, { useEffect, useRef, useState } from "react";
+import { db } from "../firebase/firebaseConfig";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useAuth } from "../context/AuthContext";
+import { supabase } from "@/lib/supabaseClient";
+import { motion } from "framer-motion";
+import toast from "react-hot-toast";
+import getCroppedImg from "../utils/cropImage";
 
 export default function Profile() {
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [profile, setProfile] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    photoURL: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [cropData, setCropData] = useState(null);
+  const fileRef = useRef();
+
+  const userId = user?.uid;
 
   useEffect(() => {
-    setUser(auth.currentUser);
-  }, []);
+    if (userId) fetchProfile();
+  }, [userId]);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/login");
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const docRef = doc(db, "users", userId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setProfile((prev) => ({ ...prev, ...docSnap.data() }));
+      }
+    } catch (error) {
+      toast.error("Failed to load profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    setProfile({ ...profile, [e.target.name]: e.target.value });
+  };
+
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      const docRef = doc(db, "users", userId);
+      await setDoc(docRef, profile, { merge: true });
+      toast.success("✅ Profile updated!");
+    } catch (err) {
+      toast.error("Error saving profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !userId) return;
+    const reader = new FileReader();
+    reader.onload = () => setSelectedImage(reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleCropAndUpload = async () => {
+    if (!selectedImage || !cropData) return;
+    try {
+      setUploading(true);
+      const croppedBlob = await getCroppedImg(selectedImage, cropData);
+      const fileName = `${userId}_${Date.now()}.jpg`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("profiles")
+        .upload(fileName, croppedBlob, { contentType: "image/jpeg" });
+
+      if (uploadError) {
+        toast.error("Upload failed");
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("profiles")
+        .getPublicUrl(fileName);
+
+      const photoURL = publicUrlData.publicUrl;
+      setProfile((prev) => ({ ...prev, photoURL }));
+      await setDoc(doc(db, "users", userId), { photoURL }, { merge: true });
+      toast.success("🎉 Photo updated!");
+      setSelectedImage(null);
+    } catch (err) {
+      toast.error("Failed to crop/upload image");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start pt-24 bg-gradient-to-br from-purple-600 via-pink-500 to-red-500 dark:from-gray-900 dark:via-gray-800 dark:to-black p-4">
-      <div className="backdrop-blur-md bg-white/10 dark:bg-black/30 shadow-xl rounded-xl p-8 max-w-md w-full text-white border border-white/20">
-        <h2 className="text-3xl font-bold text-center mb-4">👤 My Profile</h2>
+    <div className="min-h-screen py-24 px-6 bg-gradient-to-br from-pink-100 to-purple-100 dark:from-black dark:to-gray-900">
+      <div className="max-w-2xl mx-auto bg-white/80 dark:bg-gray-800 rounded-xl p-8 shadow-2xl backdrop-blur-lg">
+        <h1 className="text-3xl text-center font-bold text-pink-600 mb-8">👤 Your Profile</h1>
 
-        {user ? (
-          <>
-            <div className="mb-6">
-              <p><strong>UID:</strong> {user.uid}</p>
-              <p><strong>Email:</strong> {user.email}</p>
-              <p><strong>Verified:</strong> {user.emailVerified ? "Yes" : "No"}</p>
-            </div>
+        <div className="flex flex-col items-center space-y-4">
+          <motion.img
+            src={profile.photoURL || "/default-avatar.png"}
+            alt="Profile"
+            className="w-28 h-28 object-cover rounded-full border-4 border-pink-400 shadow-lg"
+            whileHover={{ scale: 1.05 }}
+          />
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileRef}
+            onChange={handleImageUpload}
+            className="text-sm text-gray-600"
+          />
+          {uploading && <p className="text-blue-500">Uploading image...</p>}
+        </div>
 
-            <form className="space-y-4">
-              <div>
-                <label className="block text-sm mb-1">Name</label>
-                <input
-                  type="text"
-                  placeholder="Your name"
-                  className="w-full px-4 py-2 rounded-md bg-white/20 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm mb-1">Phone Number</label>
-                <input
-                  type="tel"
-                  placeholder="9734278080"
-                  className="w-full px-4 py-2 rounded-md bg-white/20 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white"
-                  
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full bg-green-500 hover:bg-green-600 transition px-4 py-2 rounded-md font-semibold"
-              >
-                Save Changes
-              </button>
-            </form>
-
+        {selectedImage && (
+          <div className="mt-4 space-y-4">
+            <img
+              src={selectedImage}
+              alt="Preview"
+              className="rounded-xl border w-full max-h-64 object-contain"
+            />
+            {/* 👇 Add your custom cropping UI and set cropData state */}
             <button
-              onClick={handleLogout}
-              className="w-full mt-6 bg-red-500 hover:bg-red-600 transition px-4 py-2 rounded-md font-semibold"
+              onClick={handleCropAndUpload}
+              className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full font-semibold transition"
             >
-              Logout
+              ✂️ Crop & Upload
             </button>
-          </>
-        ) : (
-          <p className="text-center">Loading user info...</p>
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="ml-4 bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-full"
+            >
+              Cancel
+            </button>
+          </div>
         )}
+
+        <div className="mt-8 grid gap-4">
+          <input
+            name="name"
+            value={profile.name}
+            onChange={handleChange}
+            placeholder="Name"
+            className="input-style"
+          />
+          <input
+            name="email"
+            value={profile.email}
+            disabled
+            placeholder="Email"
+            className="input-style bg-gray-100 dark:bg-gray-700 cursor-not-allowed"
+          />
+          <input
+            name="phone"
+            value={profile.phone}
+            onChange={handleChange}
+            placeholder="Phone"
+            className="input-style"
+          />
+          <textarea
+            name="address"
+            value={profile.address}
+            onChange={handleChange}
+            placeholder="Address"
+            className="input-style"
+            rows={3}
+          />
+        </div>
+
+        <motion.button
+          onClick={handleSave}
+          whileTap={{ scale: 0.95 }}
+          className="mt-6 w-full bg-pink-500 hover:bg-pink-600 text-white py-2 rounded-full font-semibold"
+          disabled={loading}
+        >
+          {loading ? "Saving..." : "💾 Save Changes"}
+        </motion.button>
       </div>
     </div>
   );

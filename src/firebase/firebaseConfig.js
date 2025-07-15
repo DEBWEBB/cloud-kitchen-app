@@ -1,9 +1,15 @@
+// src/firebase/firebaseConfig.js
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
+import { getStorage } from "firebase/storage";
 
-// Firebase Config
+// ✅ Firebase Config
 const firebaseConfig = {
   apiKey: "***REMOVED***SyCqNo_01sglnl5Fh5atIaOYa--rWTCAyYA",
   authDomain: "cloud-kitchen-2cfbc.firebaseapp.com",
@@ -17,16 +23,21 @@ const firebaseConfig = {
 // ✅ Only initialize once
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-// Export services
+// ✅ Services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const messaging = getMessaging(app);
+export const storage = getStorage(app);
 
-// Notification Functions
+// ✅ Set local persistence
+setPersistence(auth, browserLocalPersistence);
+
+// 🔔 Notification Functions
 export const requestForToken = async () => {
   try {
     const currentToken = await getToken(messaging, {
-      vapidKey: "BBtxLZ_dYtQFhVHWOzF_0vSwnYlDmvu8hmAxsQu25BzHKhQuRa17_X6uRxFOmoh122STcxI2y9tGcw1pe_LPJUw",
+      vapidKey:
+        "BBtxLZ_dYtQFhVHWOzF_0vSwnYlDmvu8hmAxsQu25BzHKhQuRa17_X6uRxFOmoh122STcxI2y9tGcw1pe_LPJUw",
     });
 
     if (currentToken) {

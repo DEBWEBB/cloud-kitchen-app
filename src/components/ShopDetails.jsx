@@ -69,7 +69,6 @@ const ShopDetails = () => {
           <button
             style={{
               ...styles.cartBtn,
-              transform: isPressed ? "scale(0.96)" : "scale(1)",
               transition: "transform 0.2s ease",
               position: "fixed",
               bottom: "20px",

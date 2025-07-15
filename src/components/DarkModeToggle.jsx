@@ -22,3 +22,13 @@ export default function DarkModeToggle() {
     </button>
   );
 }
+<div className="absolute top-4 right-4">
+  <button
+    onClick={() =>
+      document.documentElement.classList.toggle("dark")
+    }
+    className="px-3 py-1 text-sm bg-black/10 dark:bg-white/10 text-gray-800 dark:text-gray-200 rounded hover:bg-black/20 dark:hover:bg-white/20 transition"
+  >
+    Toggle Dark 🌙
+  </button>
+</div>
