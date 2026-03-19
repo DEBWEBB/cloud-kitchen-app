@@ -24,7 +24,7 @@ const Cart = () => {
                   <h3 className="text-lg font-semibold">{item.name}</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-300">{item.description}</p>
                   <p className="font-semibold mt-1">₹{item.price}</p>
-                  <div className="flex items-center gap-2 mt-2">
+                  <div className="flex items-center gap-2 mt-2"> 
                     <button
                       onClick={() => removeFromCart(item.id)}
                       className="bg-gray-300 dark:bg-gray-600 px-2 py-1 rounded text-black dark:text-white"

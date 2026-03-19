@@ -1,96 +1,158 @@
-// src/context/AuthContext.jsx
-import { createContext, useContext, useEffect, useState } from "react";
+// src/context/AuthContext.jsx — Refactored with better patterns
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { auth, db } from "../firebase/firebaseConfig";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  updateProfile,
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { saveUserFCMToken } from "../utils/saveUserFCMToken";
 
-const AuthContext = createContext();
-export const useAuth = () => useContext(AuthContext);
+const AuthContext = createContext(null);
+
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [isAnonymous, setIsAnonymous] = useState(true);
   const [role, setRole] = useState(null);
-  const [loading, setLoading] = useState(true); // ✅ Loading state
+  const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
 
-  // ✅ Login
-  const login = async (email, password) => {
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  const clearError = useCallback(() => setAuthError(null), []);
+
+  const fetchUserRole = useCallback(async (uid) => {
+    // Try users collection first, then partners
+    const collections = ["users", "partners"];
+    for (const col of collections) {
+      const snap = await getDoc(doc(db, col, uid));
+      if (snap.exists()) return snap.data().role ?? null;
+    }
+    return null;
+  }, []);
+
+  // ── Login ─────────────────────────────────────────────────────────────────
+  const login = useCallback(async (email, password) => {
+    setAuthError(null);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      await saveUserFCMToken();
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+      try { await saveUserFCMToken(); } catch {}  // Non-critical
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.message };
+      const message = getFriendlyAuthError(error.code);
+      setAuthError(message);
+      return { success: false, error: message };
     }
-  };
+  }, []);
 
-  // ✅ Signup
-  const signup = async (email, password) => {
+  // ── Signup ────────────────────────────────────────────────────────────────
+  const signup = useCallback(async (email, password, displayName = "") => {
+    setAuthError(null);
     try {
-      const result = await createUserWithEmailAndPassword(auth, email, password);
+      const { user: newUser } = await createUserWithEmailAndPassword(auth, email.trim(), password);
 
-      await setDoc(doc(db, "users", result.user.uid), {
-        uid: result.user.uid,
-        email,
+      // Update display name if provided
+      if (displayName) {
+        await updateProfile(newUser, { displayName: displayName.trim() });
+      }
+
+      // Create user document
+      await setDoc(doc(db, "users", newUser.uid), {
+        uid: newUser.uid,
+        email: email.trim(),
+        displayName: displayName.trim() || "",
         createdAt: new Date().toISOString(),
         role: "user",
       });
 
-      await saveUserFCMToken();
+      try { await saveUserFCMToken(); } catch {}
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.message };
+      const message = getFriendlyAuthError(error.code);
+      setAuthError(message);
+      return { success: false, error: message };
     }
-  };
-
-  // ✅ Logout
-  const logout = () => signOut(auth);
-
-  // ✅ Auth listener
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        setIsAnonymous(firebaseUser.isAnonymous);
-
-        // 🔁 Try fetching user doc first
-        let docRef = doc(db, "users", firebaseUser.uid);
-        let userDoc = await getDoc(docRef);
-
-        // ❗ If not found, fallback to partners collection
-        if (!userDoc.exists()) {
-          docRef = doc(db, "partners", firebaseUser.uid);
-          userDoc = await getDoc(docRef);
-        }
-
-        setRole(userDoc.exists() ? userDoc.data().role : null);
-
-        await saveUserFCMToken();
-      } else {
-        setUser(null);
-        setIsAnonymous(true);
-        setRole(null);
-      }
-      setLoading(false); // ✅ Done loading
-    });
-
-    return () => unsub();
   }, []);
 
-  // ✅ While checking user
+  // ── Logout ────────────────────────────────────────────────────────────────
+  const logout = useCallback(async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  }, []);
+
+  // ── Auth State Listener ───────────────────────────────────────────────────
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+        try {
+          const userRole = await fetchUserRole(firebaseUser.uid);
+          setRole(userRole);
+          try { await saveUserFCMToken(); } catch {}
+        } catch (err) {
+          console.error("Failed to fetch user role:", err);
+          setRole(null);
+        }
+      } else {
+        setUser(null);
+        setRole(null);
+      }
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, [fetchUserRole]);
+
+  // ── Loading Screen ────────────────────────────────────────────────────────
   if (loading) {
-    return <div className="p-8 text-center text-xl">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-pink-200 border-t-pink-500 rounded-full animate-spin" />
+          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Loading HungryBox…</p>
+        </div>
+      </div>
+    );
   }
 
-  return (
-    <AuthContext.Provider value={{ user, isAnonymous, login, signup, logout, role }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = {
+    user,
+    role,
+    authError,
+    isAnonymous: !user,
+    isAdmin: role === "admin",
+    isPartner: role === "delivery",
+    login,
+    signup,
+    logout,
+    clearError,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+// ── Friendly Error Messages ─────────────────────────────────────────────────
+function getFriendlyAuthError(code) {
+  const errors = {
+    "auth/user-not-found": "No account found with this email.",
+    "auth/wrong-password": "Incorrect password. Please try again.",
+    "auth/invalid-email": "Please enter a valid email address.",
+    "auth/email-already-in-use": "An account with this email already exists.",
+    "auth/weak-password": "Password must be at least 6 characters.",
+    "auth/too-many-requests": "Too many attempts. Please wait before trying again.",
+    "auth/network-request-failed": "Network error. Check your connection.",
+    "auth/invalid-credential": "Invalid email or password.",
+    "auth/popup-closed-by-user": "Sign-in was cancelled.",
+  };
+  return errors[code] || "Authentication failed. Please try again.";
+}

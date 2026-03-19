@@ -6,6 +6,17 @@ export default function getCroppedImg(imageSrc, pixelCrop) {
     image.src = imageSrc;
 
     image.onload = () => {
+      // Validate crop data
+      if (
+        !pixelCrop ||
+        typeof pixelCrop.x !== "number" ||
+        typeof pixelCrop.y !== "number" ||
+        typeof pixelCrop.width !== "number" ||
+        typeof pixelCrop.height !== "number"
+      ) {
+        return reject(new Error("Invalid crop data"));
+      }
+
       const canvas = document.createElement("canvas");
       canvas.width = pixelCrop.width;
       canvas.height = pixelCrop.height;

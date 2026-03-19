@@ -1,13 +1,13 @@
-// vite.config.js
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path from "path"; // 🔥 required for path resolution
+import path from "path";
 
 export default defineConfig({
   plugins: [react()],
+  base: "/cloud-kitchen-app/", // <-- Required for GitHub Pages
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"), // 💡 Now you can use "@/firebase/..."
+      "@": path.resolve(__dirname, "./src"),
     },
   },
   server: {

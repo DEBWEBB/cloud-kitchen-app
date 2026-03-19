@@ -2,13 +2,103 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Utility Animations */
+/* ── Base Overrides ───────────────────────────────────────────────────── */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply antialiased text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  /* Remove default button outline, add custom focus ring */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible {
+    @apply outline-none ring-2 ring-pink-400 ring-offset-2;
+  }
+}
+
+/* ── Global Components ────────────────────────────────────────────────── */
+@layer components {
+  /* Input fields */
+  .input-style {
+    @apply w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700
+      bg-white dark:bg-gray-800 text-gray-800 dark:text-white
+      placeholder-gray-400 dark:placeholder-gray-500
+      focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent
+      transition shadow-sm text-sm;
+  }
+
+  /* Glass card */
+  .glass-card {
+    @apply backdrop-blur-md bg-white/70 dark:bg-gray-800/70
+      border border-white/20 dark:border-gray-700/50
+      rounded-2xl shadow-xl;
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply bg-gradient-to-r from-pink-500 to-orange-400
+      hover:from-pink-600 hover:to-orange-500
+      text-white font-semibold rounded-xl px-6 py-2.5
+      transition-all shadow-sm active:scale-95 text-sm;
+  }
+
+  /* Secondary button */
+  .btn-secondary {
+    @apply bg-gray-100 dark:bg-gray-800
+      hover:bg-gray-200 dark:hover:bg-gray-700
+      text-gray-700 dark:text-gray-200
+      font-semibold rounded-xl px-6 py-2.5
+      transition-all text-sm border border-gray-200 dark:border-gray-700;
+  }
+
+  /* Card */
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-2xl shadow-md
+      border border-gray-100 dark:border-gray-700 p-6;
+  }
+
+  /* Page container */
+  .page-container {
+    @apply max-w-5xl mx-auto px-4 py-8;
+  }
+
+  /* Section heading */
+  .section-heading {
+    @apply text-2xl font-bold text-gray-900 dark:text-white mb-6;
+  }
+
+  /* Image crop modal */
+  .cropper-modal {
+    @apply fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4;
+  }
+  .cropper-container {
+    @apply w-full max-w-md bg-white dark:bg-gray-900 p-4 rounded-2xl shadow-2xl;
+  }
+}
+
+/* ── Utility Animations ───────────────────────────────────────────────── */
 @layer utilities {
   .animate-fade-in {
-    animation: fadeIn 1s ease-in forwards;
+    animation: fadeIn 0.5s ease-out forwards;
   }
-  .animate-fade-in-down {
-    animation: fadeInDown 1s ease-out forwards;
+  .animate-fade-in-up {
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
+  .animate-slide-in-right {
+    animation: slideInRight 0.3s ease-out forwards;
   }
 
   @keyframes fadeIn {
@@ -16,50 +106,50 @@
     to { opacity: 1; }
   }
 
-  @keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-10px); }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
   }
+
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Pulse glow for attention elements */
+  .glow-animation {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 8px rgba(236, 72, 153, 0.4); }
+    50% { box-shadow: 0 0 20px rgba(236, 72, 153, 0.7), 0 0 40px rgba(244, 63, 94, 0.3); }
+  }
+
+  /* Scrollbar customization */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(236, 72, 153, 0.3) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(236, 72, 153, 0.3);
+    border-radius: 4px;
+  }
 }
 
-/* Futuristic / Glassmorphism Components */
-@layer components {
-  .input-style {
-    @apply w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-400 shadow-sm;
-  }
-
-  .glass-card {
-    @apply backdrop-blur-md bg-white/60 dark:bg-gray-800/60 p-6 rounded-3xl shadow-2xl;
-  }
-
-  .cropper-modal {
-    @apply fixed inset-0 bg-black/70 flex items-center justify-center z-50;
-  }
-
-  .cropper-container {
-    @apply w-full max-w-md bg-white dark:bg-gray-900 p-4 rounded-xl shadow-lg;
-  }
-
-  .cropper-buttons {
-    @apply flex justify-between mt-4 space-x-4;
-  }
-
-  .primary-button {
-    @apply bg-pink-500 hover:bg-pink-600 text-white font-semibold py-2 px-6 rounded-xl transition-all;
-  }
-
-  .secondary-button {
-    @apply bg-gray-300 hover:bg-gray-400 text-gray-900 font-medium py-2 px-6 rounded-xl;
-  }
-
-  .input-style {
-  @apply w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 dark:text-white;
-  }
-
+/* ── Leaflet Map Overrides ────────────────────────────────────────────── */
+.leaflet-container {
+  border-radius: 12px;
+  z-index: 1;
 }
 
-/* Global Body Styles */
-body {
-  @apply dark:bg-gradient-to-br dark:from-black dark:via-gray-900 dark:to-gray-800 bg-gradient-to-br from-pink-100 via-pink-200 to-purple-100 min-h-screen font-sans;
-  transition: background 0.3s ease;
+.leaflet-control-attribution {
+  font-size: 10px !important;
 }

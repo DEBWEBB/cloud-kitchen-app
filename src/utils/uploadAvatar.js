@@ -1,23 +1,34 @@
 import { supabase } from '../lib/supabaseClient';
 
 export const uploadAvatar = async (userId, file) => {
-  const fileExt = file.name.split('.').pop();
-  const filePath = `${userId}.${fileExt}`;
+  if (!file || !userId) throw new Error("Missing file or userId");
 
-  const { data, error } = await supabase.storage
+  const fileExt = file.name.split('.').pop();
+  const filePath = `avatars/${userId}/${Date.now()}.${fileExt}`; // safer unique path
+
+  // Upload file
+  const { error: uploadError } = await supabase.storage
     .from('avatars')
     .upload(filePath, file, {
+      cacheControl: '3600',
       upsert: true,
       contentType: file.type,
     });
 
-  if (error) throw error;
+  if (uploadError) {
+    console.error("Upload error:", uploadError.message);
+    throw uploadError;
+  }
 
   // Get public URL
-  const { data: publicUrlData } = supabase
+  const { data, error: urlError } = supabase
     .storage
     .from('avatars')
     .getPublicUrl(filePath);
 
-  return publicUrlData.publicUrl;
+  if (urlError || !data || !data.publicUrl) {
+    throw urlError ?? new Error("Could not get avatar public URL");
+  }
+
+  return data.publicUrl;
 };

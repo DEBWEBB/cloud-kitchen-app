@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { auth, db } from "../firebase/firebaseConfig";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { doc, getDoc } from "firebase/firestore";
+import PreviousMap_ from "postcss/lib/previous-map";
+import { FaJugDetergent } from "react-icons/fa6";
 
 export default function PartnerRoute({ children }) {
   const [user, loading] = useAuthState(auth);
@@ -25,3 +27,4 @@ export default function PartnerRoute({ children }) {
   }
   return children;
 }
+

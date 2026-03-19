@@ -20,7 +20,7 @@ const firebaseConfig = {
   measurementId: "G-XD3QBD2NXW",
 };
 
-// ✅ Only initialize once
+// ✅ Only initialize once 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 // ✅ Services
@@ -35,18 +35,33 @@ setPersistence(auth, browserLocalPersistence);
 // 🔔 Notification Functions
 export const requestForToken = async () => {
   try {
+    if (!("serviceWorker" in navigator)) {
+      console.warn("Service workers not supported");
+      return null;
+    }
+
+    // ✅ STEP 1: Register service worker manually
+    const registration = await navigator.serviceWorker.register(
+      "/firebase-messaging-sw.js"
+    );
+
+    // ✅ STEP 2: Get token with SW
     const currentToken = await getToken(messaging, {
       vapidKey:
         "BBtxLZ_dYtQFhVHWOzF_0vSwnYlDmvu8hmAxsQu25BzHKhQuRa17_X6uRxFOmoh122STcxI2y9tGcw1pe_LPJUw",
+      serviceWorkerRegistration: registration, // 🔥 IMPORTANT
     });
 
     if (currentToken) {
-      console.log("FCM Token:", currentToken);
+      console.log("✅ FCM Token:", currentToken);
+      return currentToken;
     } else {
-      console.warn("No registration token available.");
+      console.warn("❌ No registration token available.");
+      return null;
     }
   } catch (error) {
-    console.error("Error retrieving token: ", error);
+    console.error("❌ Error retrieving token:", error);
+    return null;
   }
 };
 

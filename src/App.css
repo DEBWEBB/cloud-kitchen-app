@@ -53,3 +53,13 @@
 .glow-animation {
   animation: glow 2.5s ease-in-out infinite;
 }
+
+/* Add to your global CSS */
+.glow-animation {
+  box-shadow: 0 0 16px 2px #ec4899, 0 0 32px 4px #f472b6;
+  animation: glow 1.5s infinite alternate;
+}
+@keyframes glow {
+  from { box-shadow: 0 0 8px #ec4899; }
+  to { box-shadow: 0 0 24px #f472b6; }
+}

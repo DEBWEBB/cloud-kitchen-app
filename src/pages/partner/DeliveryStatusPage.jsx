@@ -147,14 +147,25 @@ export default function DeliveryStatusPage() {
         </div>
 
         {/* 📸 Selfie Display */}
-        {order?.selfieUrl && (
+        {order?.selfieUrl ? (
           <div>
             <label className="block mb-2 font-medium">🧍 Delivery Partner Selfie:</label>
             <img
               src={order.selfieUrl}
               alt="Selfie"
               className="rounded w-40 h-40 object-cover border shadow"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://via.placeholder.com/160?text=No+Selfie";
+              }}
             />
+          </div>
+        ) : (
+          <div>
+            <label className="block mb-2 font-medium">🧍 Delivery Partner Selfie:</label>
+            <div className="w-40 h-40 flex items-center justify-center border rounded shadow bg-gray-100 dark:bg-gray-800 text-gray-400">
+              No selfie uploaded
+            </div>
           </div>
         )}
 

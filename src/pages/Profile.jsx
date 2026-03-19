@@ -1,13 +1,21 @@
-
-// src/pages/Profile.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { db } from "../firebase/firebaseConfig";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
-import { supabase } from "@/lib/supabaseClient";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import getCroppedImg from "../utils/cropImage";
+import { uploadAvatar } from "../utils/uploadAvatar";
+
+function base64ToBlob(base64, mime = "image/jpeg") {
+  const byteString = atob(base64.split(",")[1]);
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+  return new Blob([ab], { type: mime });
+}
 
 export default function Profile() {
   const { user } = useAuth();
@@ -71,26 +79,27 @@ export default function Profile() {
   };
 
   const handleCropAndUpload = async () => {
-    if (!selectedImage || !cropData) return;
+    if (!selectedImage) return;
     try {
       setUploading(true);
-      const croppedBlob = await getCroppedImg(selectedImage, cropData);
-      const fileName = `${userId}_${Date.now()}.jpg`;
+      let croppedBlob = cropData
+        ? await getCroppedImg(selectedImage, cropData)
+        : selectedImage;
 
-      const { error: uploadError } = await supabase.storage
-        .from("profiles")
-        .upload(fileName, croppedBlob, { contentType: "image/jpeg" });
+      if (typeof croppedBlob === "string") {
+        croppedBlob = base64ToBlob(croppedBlob, "image/jpeg");
+      }
 
-      if (uploadError) {
-        toast.error("Upload failed");
+      // Ensure croppedBlob is a Blob before creating File
+      if (!(croppedBlob instanceof Blob)) {
+        toast.error("Image is not a Blob. Check cropping logic.");
+        setUploading(false);
         return;
       }
 
-      const { data: publicUrlData } = supabase.storage
-        .from("profiles")
-        .getPublicUrl(fileName);
-
-      const photoURL = publicUrlData.publicUrl;
+      const avatarFile = new File([croppedBlob], `${userId}.jpg`, { type: "image/jpeg" });
+      const photoURL = await uploadAvatar(userId, avatarFile);
+      
       setProfile((prev) => ({ ...prev, photoURL }));
       await setDoc(doc(db, "users", userId), { photoURL }, { merge: true });
       toast.success("🎉 Photo updated!");
@@ -113,6 +122,7 @@ export default function Profile() {
             alt="Profile"
             className="w-28 h-28 object-cover rounded-full border-4 border-pink-400 shadow-lg"
             whileHover={{ scale: 1.05 }}
+            onError={e => { e.target.src = "/default-avatar.png"; }}
           />
           <input
             type="file"
@@ -132,15 +142,17 @@ export default function Profile() {
               className="rounded-xl border w-full max-h-64 object-contain"
             />
             {/* 👇 Add your custom cropping UI and set cropData state */}
-            <button
+           <button
               onClick={handleCropAndUpload}
               className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full font-semibold transition"
+              disabled={uploading}
             >
-              ✂️ Crop & Upload
+              {uploading ? "Uploading..." : "✂️ Crop & Upload"}
             </button>
             <button
               onClick={() => setSelectedImage(null)}
               className="ml-4 bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-full"
+              disabled={uploading}
             >
               Cancel
             </button>
@@ -189,5 +201,5 @@ export default function Profile() {
         </motion.button>
       </div>
     </div>
-  );
+    );
 }

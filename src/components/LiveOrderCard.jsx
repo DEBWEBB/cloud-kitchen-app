@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 import useLocationUpdater from "../utils/useLocationUpdater";
+import { footer } from "framer-motion/client";
+import { updateProfile } from "firebase/auth";
 
 export default function LiveOrderCard({ order }) {
   useLocationUpdater(order.id, order.status !== "delivered");
