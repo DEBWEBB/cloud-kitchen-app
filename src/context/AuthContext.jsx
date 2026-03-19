@@ -1,6 +1,5 @@
-// src/context/AuthContext.jsx — Refactored with better patterns
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { auth, db } from "../firebase/firebaseConfig";
+import { auth, db, requestForToken } from "../firebase/firebaseConfig";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -25,11 +24,9 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
   const clearError = useCallback(() => setAuthError(null), []);
 
   const fetchUserRole = useCallback(async (uid) => {
-    // Try users collection first, then partners
     const collections = ["users", "partners"];
     for (const col of collections) {
       const snap = await getDoc(doc(db, col, uid));
@@ -38,12 +35,10 @@ export const AuthProvider = ({ children }) => {
     return null;
   }, []);
 
-  // ── Login ─────────────────────────────────────────────────────────────────
   const login = useCallback(async (email, password) => {
     setAuthError(null);
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
-      try { await saveUserFCMToken(); } catch {}  // Non-critical
       return { success: true };
     } catch (error) {
       const message = getFriendlyAuthError(error.code);
@@ -52,18 +47,19 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // ── Signup ────────────────────────────────────────────────────────────────
   const signup = useCallback(async (email, password, displayName = "") => {
     setAuthError(null);
     try {
-      const { user: newUser } = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      const { user: newUser } = await createUserWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
 
-      // Update display name if provided
       if (displayName) {
         await updateProfile(newUser, { displayName: displayName.trim() });
       }
 
-      // Create user document
       await setDoc(doc(db, "users", newUser.uid), {
         uid: newUser.uid,
         email: email.trim(),
@@ -72,7 +68,6 @@ export const AuthProvider = ({ children }) => {
         role: "user",
       });
 
-      try { await saveUserFCMToken(); } catch {}
       return { success: true };
     } catch (error) {
       const message = getFriendlyAuthError(error.code);
@@ -81,7 +76,6 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // ── Logout ────────────────────────────────────────────────────────────────
   const logout = useCallback(async () => {
     try {
       await signOut(auth);
@@ -90,7 +84,6 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // ── Auth State Listener ───────────────────────────────────────────────────
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
@@ -98,7 +91,17 @@ export const AuthProvider = ({ children }) => {
         try {
           const userRole = await fetchUserRole(firebaseUser.uid);
           setRole(userRole);
-          try { await saveUserFCMToken(); } catch {}
+
+          const tokenSavedKey = `fcm_token_saved_${firebaseUser.uid}`;
+          if (!localStorage.getItem(tokenSavedKey)) {
+            try {
+              const token = await requestForToken();
+              if (token) {
+                await saveUserFCMToken(token);
+                localStorage.setItem(tokenSavedKey, "true");
+              }
+            } catch {}
+          }
         } catch (err) {
           console.error("Failed to fetch user role:", err);
           setRole(null);
@@ -113,13 +116,14 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, [fetchUserRole]);
 
-  // ── Loading Screen ────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-pink-200 border-t-pink-500 rounded-full animate-spin" />
-          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Loading HungryBox…</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+            Loading HungryBox...
+          </p>
         </div>
       </div>
     );
@@ -141,7 +145,6 @@ export const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// ── Friendly Error Messages ─────────────────────────────────────────────────
 function getFriendlyAuthError(code) {
   const errors = {
     "auth/user-not-found": "No account found with this email.",

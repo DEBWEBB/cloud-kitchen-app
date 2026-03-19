@@ -79,7 +79,7 @@ export default function AboutUs() {
           handle="DEBWEB"
           status="Online"
           contactText="Contact Me"
-          avatarUrl="/assets/DEBWEB.png"
+          avatarUrl={undefined}
           showUserInfo={true}
           enableTilt={true}
           onContactClick={() =>

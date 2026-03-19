@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import { motion } from "framer-motion";
+import { useAuth } from "../context/AuthContext";
 
 export default function PartnerHeader() {
   const { logout } = useAuth();
@@ -10,17 +10,14 @@ export default function PartnerHeader() {
       initial={{ y: -60 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="fixed top-0 w-full bg-blue-600 text-white shadow-lg px-6 py-4 z-[100] flex justify-between items-center"
+      className="sticky top-0 z-[100] flex w-full items-center justify-between border-b border-gray-100 bg-white/85 px-4 py-4 text-gray-900 shadow-sm backdrop-blur md:px-6 dark:border-gray-800 dark:bg-gray-900/85 dark:text-white"
     >
-      <h1 className="font-bold text-xl">📦 Delivery Portal</h1>
-      <nav className="space-x-6">
-        <Link className="hover:underline" to="/partner/dashboard">Orders</Link>
-        <Link className="hover:underline" to="/partner/profile">Profile</Link>
-        <Link className="hover:underline" to="/partner/earnings">Earnings</Link>
-        <button
-          onClick={logout}
-          className="bg-red-500 px-3 py-1 rounded hover:bg-red-600 transition"
-        >
+      <h1 className="text-xl font-bold">Delivery Portal</h1>
+      <nav className="flex items-center gap-2 md:gap-3">
+        <Link className="btn-ghost text-sm" to="/partner/dashboard">Orders</Link>
+        <Link className="btn-ghost text-sm" to="/partner/profile">Profile</Link>
+        <Link className="btn-ghost text-sm" to="/partner/earnings">Earnings</Link>
+        <button onClick={logout} className="btn-primary text-sm">
           Logout
         </button>
       </nav>

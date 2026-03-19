@@ -9,7 +9,6 @@ import { getFirestore } from "firebase/firestore";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { getStorage } from "firebase/storage";
 
-// ✅ Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyCqNo_01sglnl5Fh5atIaOYa--rWTCAyYA",
   authDomain: "cloud-kitchen-2cfbc.firebaseapp.com",
@@ -20,47 +19,46 @@ const firebaseConfig = {
   measurementId: "G-XD3QBD2NXW",
 };
 
-// ✅ Only initialize once 
+const FCM_VAPID_KEY =
+  "BBtxLZ_dYtQFhVHWOzF_0vSwnYlDmvu8hmAxsQu25BzHKhQuRa17_X6uRxFOmoh122STcxI2y9tGcw1pe_LPJUw";
+
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-// ✅ Services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const messaging = getMessaging(app);
 export const storage = getStorage(app);
 
-// ✅ Set local persistence
 setPersistence(auth, browserLocalPersistence);
 
-// 🔔 Notification Functions
+export const registerMessagingServiceWorker = async () => {
+  if (!("serviceWorker" in navigator)) {
+    console.warn("Service workers not supported");
+    return null;
+  }
+
+  const swUrl = `${import.meta.env.BASE_URL}firebase-messaging-sw.js`;
+  return navigator.serviceWorker.register(swUrl);
+};
+
 export const requestForToken = async () => {
   try {
-    if (!("serviceWorker" in navigator)) {
-      console.warn("Service workers not supported");
-      return null;
-    }
+    const registration = await registerMessagingServiceWorker();
+    if (!registration) return null;
 
-    // ✅ STEP 1: Register service worker manually
-    const registration = await navigator.serviceWorker.register(
-      "/firebase-messaging-sw.js"
-    );
-
-    // ✅ STEP 2: Get token with SW
     const currentToken = await getToken(messaging, {
-      vapidKey:
-        "BBtxLZ_dYtQFhVHWOzF_0vSwnYlDmvu8hmAxsQu25BzHKhQuRa17_X6uRxFOmoh122STcxI2y9tGcw1pe_LPJUw",
-      serviceWorkerRegistration: registration, // 🔥 IMPORTANT
+      vapidKey: FCM_VAPID_KEY,
+      serviceWorkerRegistration: registration,
     });
 
     if (currentToken) {
-      console.log("✅ FCM Token:", currentToken);
+      console.log("FCM Token:", currentToken);
       return currentToken;
-    } else {
-      console.warn("❌ No registration token available.");
-      return null;
     }
+
+    return null;
   } catch (error) {
-    console.error("❌ Error retrieving token:", error);
+    console.error("Error retrieving token:", error);
     return null;
   }
 };

@@ -12,6 +12,7 @@ import { Pie } from "react-chartjs-2";
 import "chart.js/auto";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
+import fallbackImage from "../assets/HungryBOX-logo.jpg";
 
 
 // Helper to check if date is within a range
@@ -225,7 +226,7 @@ export default function AdminPage() {
         {users.map(u=>(
           <div key={u.id} className="bg-white dark:bg-gray-800 rounded shadow p-4 flex items-center gap-4">
             <img
-              src={u.photoURL||"https://via.placeholder.com/64"}
+              src={u.photoURL || fallbackImage}
               className="w-16 h-16 rounded-full object-cover"
               alt={u.name||"User"}
             />

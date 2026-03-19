@@ -3,8 +3,6 @@ import { useEffect, useState } from "react";
 import { auth, db } from "../firebase/firebaseConfig";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { doc, getDoc } from "firebase/firestore";
-import PreviousMap_ from "postcss/lib/previous-map";
-import { FaJugDetergent } from "react-icons/fa6";
 
 export default function PartnerRoute({ children }) {
   const [user, loading] = useAuthState(auth);
@@ -20,11 +18,12 @@ export default function PartnerRoute({ children }) {
   }, [user]);
 
   if (loading || isPartner === null) {
-    return <div className="p-12 text-center text-lg">Checking access…</div>;
+    return <div className="p-12 text-center text-lg">Checking access...</div>;
   }
+
   if (!user || !isPartner) {
     return <Navigate to="/delivery-auth" />;
   }
+
   return children;
 }
-

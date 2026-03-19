@@ -85,6 +85,7 @@ export default function Login() {
         <form onSubmit={handleLogin} className="space-y-5">
           <input
             type="email"
+            autoComplete="email"
             placeholder="Enter email"
             className="w-full px-5 py-3 rounded-xl bg-white/60 dark:bg-gray-700 border border-white/30 dark:border-gray-600 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 focus:ring-2 ring-pink-500 outline-none transition-all duration-300"
             value={email}
@@ -93,6 +94,7 @@ export default function Login() {
           />
           <input
             type="password"
+            autoComplete="current-password"
             placeholder="Enter password"
             className="w-full px-5 py-3 rounded-xl bg-white/60 dark:bg-gray-700 border border-white/30 dark:border-gray-600 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 focus:ring-2 ring-pink-500 outline-none transition-all duration-300"
             value={password}

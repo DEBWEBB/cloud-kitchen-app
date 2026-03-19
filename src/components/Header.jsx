@@ -1,17 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import { FaBars, FaTimes } from "react-icons/fa";
-import { motion } from "framer-motion";
 import hungryLogo from "../assets/HungryBOX-logo.jpg";
+import { useAuth } from "../context/AuthContext";
 
 const Header = () => {
   const { user, isAnonymous, logout, role } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => localStorage.theme === "dark");
   const location = useLocation();
-
-  const toggleMenu = () => setMenuOpen(!menuOpen);
 
   useEffect(() => {
     if (darkMode) {
@@ -24,10 +21,10 @@ const Header = () => {
   }, [darkMode]);
 
   const navItemClasses = (path) =>
-    `flex items-center gap-1 px-3 py-1 rounded-full transition duration-200 ${
+    `rounded-full px-3 py-2 text-sm font-medium transition ${
       location.pathname === path
-        ? "bg-yellow-300 text-black shadow-md scale-105"
-        : "hover:scale-105 hover:text-yellow-200 dark:hover:text-yellow-300"
+        ? "bg-gradient-to-r from-pink-500 to-orange-400 text-white shadow"
+        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
     }`;
 
   const navLinks = (
@@ -39,66 +36,37 @@ const Header = () => {
       <Link to="/profile" className={navItemClasses("/profile")}>Profile</Link>
       <Link to="/about" className={navItemClasses("/about")}>About Us</Link>
       {role === "admin" && <Link to="/admin" className={navItemClasses("/admin")}>Admin</Link>}
-      <button
-        onClick={logout}
-        className="flex items-center gap-1 hover:text-yellow-200 hover:scale-105 transition duration-200"
-      >
-        Logout
-      </button>
+      <button onClick={logout} className="btn-ghost text-sm">Logout</button>
     </>
   );
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md bg-gradient-to-r from-pink-500/70 to-red-400/70 dark:from-gray-800 dark:to-gray-900 text-white shadow-lg border-b-2 border-pink-300 dark:border-gray-700">
-      <div className="max-w-7xl mx-auto flex justify-between items-center px-4 py-2">
-        
-        {/* 🍰 Logo + Title Group */}
-        <motion.div
-          whileHover={{ scale: 1.07 }}
-          whileTap={{ scale: 1.05 }}
-          className="flex items-center gap-3 cursor-pointer group"
-        >
-          {/* Logo */}
-          <div className="w-[55px] h-[55px] overflow-hidden rounded-full border-2 border-pink-300 transition-all duration-300 group-hover:shadow-[0_0_25px_#ff80ab]">
-            <img
-              src={hungryLogo}
-              alt="HungryBox Logo"
-              className="w-full h-full object-cover"
-            />
+    <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur dark:border-gray-800 dark:bg-gray-900/80">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
+        <Link to="/" className="flex items-center gap-3">
+          <div className="h-12 w-12 overflow-hidden rounded-2xl border border-gray-200 shadow-sm dark:border-gray-700">
+            <img src={hungryLogo} alt="HungryBox Logo" className="h-full w-full object-cover" />
           </div>
+          <div>
+            <span className="block text-lg font-bold tracking-tight text-gray-900 dark:text-white">
+              HungryBox
+            </span>
+            <span className="muted hidden md:block">Fresh delivery from your cloud kitchen</span>
+          </div>
+        </Link>
 
-          {/* Glowing Title */}
-          <motion.span
-            className="text-2xl font-bold tracking-wide text-white transition-all duration-300 group-hover:text-pink-100"
-            whileHover={{
-               scale:1.12,
-               textShadow: "0 0 8px #ffb6c1, 0 0 16px #ff69b4",
-            }}
-            whileTap={{
-               scale:1.12,
-               textShadow: "0 0 8px #ffb6c1, 0 0 16px #ff69b4",
-            }} 
-          >
-
-            HungryBox
-          </motion.span>
-        </motion.div>
-
-        {/* 🌙 Dark Mode Toggle */}
         <button
           onClick={() => setDarkMode(!darkMode)}
-          className={`hidden md:flex items-center gap-2 px-4 py-1 rounded-full text-sm font-semibold transition-all duration-300 
-          ${
+          className={`hidden rounded-full px-4 py-2 text-sm font-semibold transition md:flex ${
             darkMode
-              ? "bg-yellow-300 text-black hover:bg-yellow-400 shadow-md"
-              : "bg-white/10 text-yellow-100 hover:bg-white/20"
+              ? "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200"
           }`}
         >
-          {darkMode ? "☀️ Light" : "🌙 Dark"}
+          {darkMode ? "Light" : "Dark"}
         </button>
 
-        {/* 💻 Desktop Nav */}
-        <nav className="hidden md:flex gap-4 text-lg font-medium">
+        <nav className="hidden items-center gap-2 md:flex">
           {!user || isAnonymous ? (
             <>
               <Link to="/login" className={navItemClasses("/login")}>Login</Link>
@@ -110,31 +78,28 @@ const Header = () => {
           )}
         </nav>
 
-        {/* 📱 Hamburger */}
-        <div className="md:hidden text-2xl cursor-pointer" onClick={toggleMenu}>
+        <div className="cursor-pointer text-2xl text-gray-700 dark:text-gray-200 md:hidden" onClick={() => setMenuOpen((v) => !v)}>
           {menuOpen ? <FaTimes /> : <FaBars />}
         </div>
       </div>
 
-      {/* 📱 Mobile Dropdown */}
       {menuOpen && (
-        <div className="md:hidden bg-gradient-to-r from-pink-600/90 to-red-500/90 px-6 pb-4 space-y-3 text-lg font-medium">
+        <div className="border-t border-gray-100 bg-white px-4 pb-4 pt-2 dark:border-gray-800 dark:bg-gray-900 md:hidden">
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className={`w-full flex justify-center py-1 rounded-full font-semibold 
-            ${darkMode ? "bg-yellow-300 text-black" : "bg-white/10 text-yellow-100"}`}
+            className="btn-ghost mb-3 flex w-full justify-center"
           >
-            {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+            {darkMode ? "Light Mode" : "Dark Mode"}
           </button>
 
           {!user || isAnonymous ? (
-            <>
+            <div className="flex flex-col gap-2">
               <Link to="/login" className={navItemClasses("/login")}>Login</Link>
               <Link to="/signup" className={navItemClasses("/signup")}>Signup</Link>
               <Link to="/delivery-auth" className={navItemClasses("/delivery-auth")}>Partner Login</Link>
-            </>
+            </div>
           ) : (
-            <div className="flex flex-col space-y-2">{navLinks}</div>
+            <div className="flex flex-col gap-2">{navLinks}</div>
           )}
         </div>
       )}

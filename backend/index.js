@@ -5,29 +5,52 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 dotenv.config();
 
-// ─── CHECK ENV ─────────────────────────────────────────────
+const PORT = process.env.PORT || 5000;
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "*";
+const MAX_MESSAGE_LENGTH = 500;
+const RATE_LIMIT = 20;
+const RATE_WINDOW = 60_000;
+const CACHE_TTL = 5 * 60_000;
+const SAFETY_BLOCKLIST = [
+  "bomb",
+  "explosive",
+  "kill",
+  "suicide",
+  "self harm",
+  "hack",
+  "fraud",
+  "illegal",
+  "credit card theft",
+  "hack account",
+  "malware",
+  "drug recipe",
+];
+
 if (!process.env.GEMINI_API_KEY) {
-  console.error("❌ Missing GEMINI_API_KEY in .env");
+  console.error("Missing GEMINI_API_KEY in .env");
   process.exit(1);
 }
 
-// ─── GEMINI SETUP ─────────────────────────────────────────
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
-// ─── APP ──────────────────────────────────────────────────
 const app = express();
+const rateLimitMap = new Map();
+const cache = new Map();
 
-app.use(cors({ origin: process.env.ALLOWED_ORIGIN || "*" }));
+app.use(cors({ origin: ALLOWED_ORIGIN }));
 app.use(express.json({ limit: "10kb" }));
 
-// ─── RATE LIMIT ───────────────────────────────────────────
-const rateLimitMap = new Map();
-const RATE_LIMIT = 20;
-const RATE_WINDOW = 60_000;
+function sanitizeMessage(value = "") {
+  return value.replace(/\s+/g, " ").replace(/[<>]/g, "").trim();
+}
+
+function isBlockedMessage(message) {
+  const text = message.toLowerCase();
+  return SAFETY_BLOCKLIST.some((term) => text.includes(term));
+}
 
 function rateLimit(req, res, next) {
-  const ip = req.ip || req.socket.remoteAddress;
+  const ip = req.ip || req.socket.remoteAddress || "unknown";
   const now = Date.now();
   const entry = rateLimitMap.get(ip);
 
@@ -37,76 +60,52 @@ function rateLimit(req, res, next) {
   }
 
   if (entry.count >= RATE_LIMIT) {
-    return res.status(429).json({ error: "Too many requests" });
+    return res.status(429).json({ error: "Too many requests. Please wait a moment." });
   }
 
-  entry.count++;
-  next();
+  entry.count += 1;
+  return next();
 }
 
-// ─── CACHE ────────────────────────────────────────────────
-const cache = new Map();
-const CACHE_TTL = 5 * 60_000;
-
 function getCached(message) {
-  const entry = cache.get(message.toLowerCase().trim());
-  if (entry && Date.now() < entry.expiresAt) return entry.reply;
+  const key = message.toLowerCase();
+  const entry = cache.get(key);
+
+  if (entry && Date.now() < entry.expiresAt) {
+    return entry.payload;
+  }
+
   return null;
 }
 
-function setCache(message, reply) {
-  cache.set(message.toLowerCase().trim(), {
-    reply,
+function setCache(message, payload) {
+  cache.set(message.toLowerCase(), {
+    payload,
     expiresAt: Date.now() + CACHE_TTL,
   });
 }
 
-// ─── RULE ENGINE ──────────────────────────────────────────
 function getRuleBasedReply(message) {
   const msg = message.toLowerCase();
 
-  if (msg.includes("cake")) {
-    return {
-      reply: "🎂 Popular cakes you might like:",
-      source: "rule",
-      actions: [
-        {
-          label: "🍫 Chocolate Cake",
-          type: "add_to_cart",
-          value: {
-            id: "cake_choco",
-            name: "Chocolate Cake",
-            price: 350,
-            image: "/assets/mioamore.jpeg",
-          },
-        },
-        {
-          label: "❤️ Red Velvet",
-          type: "add_to_cart",
-          value: {
-            id: "cake_red",
-            name: "Red Velvet Cake",
-            price: 400,
-            image: "/assets/monginis.png",
-          },
-        },
-      ],
-    };
-  }
-
   if (msg.includes("order")) {
     return {
-      reply: "🛒 To order:\n1. Browse menu\n2. Add items\n3. Checkout",
+      reply: "To place an order: browse a store, add items to your cart, and continue to checkout.",
       source: "rule",
-      actions: [
-        { label: "View Menu", type: "navigate", value: "/shop" },
-      ],
+      actions: [{ label: "Browse Stores", type: "navigate", value: "/" }],
     };
   }
 
-  if (msg.includes("hi") || msg.includes("hello")) {
+  if (msg.includes("payment") || msg.includes("upi") || msg.includes("cod")) {
     return {
-      reply: "👋 Hi! I'm your HungryBox assistant.",
+      reply: "We currently support UPI QR and cash on delivery, depending on the checkout flow.",
+      source: "rule",
+    };
+  }
+
+  if (msg.includes("hello") || msg.includes("hi")) {
+    return {
+      reply: "Hi! I can help with menu suggestions, payments, order tracking, and delivery questions.",
       source: "rule",
     };
   }
@@ -114,62 +113,72 @@ function getRuleBasedReply(message) {
   return null;
 }
 
-// ─── CHAT API ─────────────────────────────────────────────
 app.post("/api/ai-chat", rateLimit, async (req, res) => {
-  const { message } = req.body;
-
-  if (!message || typeof message !== "string") {
+  if (!req.body || typeof req.body.message !== "string") {
     return res.status(400).json({ error: "Invalid message" });
   }
 
-  const trimmed = message.trim();
+  const trimmed = sanitizeMessage(req.body.message);
 
-  // ✅ CACHE
-  const cached = getCached(trimmed);
-  if (cached) {
-    return res.json({ reply: cached, source: "cache" });
+  if (!trimmed) {
+    return res.status(400).json({ error: "Message cannot be empty" });
   }
 
-  // ✅ RULE
+  if (trimmed.length > MAX_MESSAGE_LENGTH) {
+    return res.status(400).json({ error: `Message must be ${MAX_MESSAGE_LENGTH} characters or fewer` });
+  }
+
+  if (isBlockedMessage(trimmed)) {
+    return res.status(400).json({
+      error: "That request is not supported. Please ask about food, orders, payments, or delivery.",
+      source: "safety",
+    });
+  }
+
+  const cached = getCached(trimmed);
+  if (cached) {
+    return res.json({ ...cached, source: "cache" });
+  }
+
   const rule = getRuleBasedReply(trimmed);
   if (rule) {
-    setCache(trimmed, rule.reply);
+    setCache(trimmed, rule);
     return res.json(rule);
   }
 
   try {
-    // ✅ GEMINI AI
-    const result = await model.generateContent(trimmed);
-    const reply = result.response.text();
+    const prompt = [
+      "You are a safe food delivery assistant for HungryBox.",
+      "Only answer questions about food, ordering, delivery, payments, refunds, and app guidance.",
+      "Decline anything harmful, illegal, unsafe, abusive, or unrelated.",
+      "Keep responses short, useful, and customer-friendly.",
+      `User message: ${trimmed}`,
+    ].join("\n");
 
-    setCache(trimmed, reply);
-
-    return res.json({
-      reply,
+    const result = await model.generateContent(prompt);
+    const reply = sanitizeMessage(result.response.text()).slice(0, 700);
+    const payload = {
+      reply: reply || "You can browse menu items, place an order, or track delivery here.",
       source: "ai",
-    });
+    };
+
+    setCache(trimmed, payload);
+    return res.json(payload);
   } catch (error) {
-    console.log("⚠️ Gemini failed → fallback");
+    console.error("Gemini failed, serving fallback:", error?.message || error);
+    const fallback = getRuleBasedReply(trimmed) || {
+      reply: "I can help with menu suggestions, orders, tracking, and payment questions.",
+      source: "fallback",
+    };
 
-    const fallback = getRuleBasedReply(trimmed);
-
-    return res.json(
-      fallback || {
-        reply: "😊 You can browse menu or place an order.",
-        source: "rule",
-      }
-    );
+    return res.json(fallback);
   }
 });
 
-// ─── HEALTH ───────────────────────────────────────────────
-app.get("/api/health", (req, res) => {
+app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-// ─── START ────────────────────────────────────────────────
-const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
-  console.log(`🚀 Gemini backend running at http://localhost:${PORT}`);
+  console.log(`Gemini backend running at http://localhost:${PORT}`);
 });

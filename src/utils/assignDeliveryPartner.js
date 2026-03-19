@@ -1,89 +1,112 @@
 import {
   collection,
-  query,
-  where,
-  getDocs,
   doc,
-  setDoc,
+  getDocs,
+  increment,
   serverTimestamp,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 import haversine from "./haversineDistance";
 
-// 🏬 Hardcoded store locations
-const STORES = {
-  mioamore: { lat: 23.609938, lng: 88.383813 },
-  monginis: { lat: 23.610062, lng: 88.384438 },
+const STORE_LOCATIONS = {
+  mio: { lat: 23.609938, lng: 88.383813, label: "Mio Amore" },
+  monginis: { lat: 23.610062, lng: 88.384438, label: "Monginis" },
 };
 
-// 🔁 Broadcast new delivery request to nearby partners
-export const assignDeliveryPartner = async (orderId, storeKey) => {
-  const storeLocation = STORES[storeKey];
-  if (!storeLocation) {
-    console.error("❌ Invalid store key");
-    return;
-  }
+export const getStoreLocation = (storeKey) =>
+  STORE_LOCATIONS[storeKey] || STORE_LOCATIONS.mio;
 
-  const partnersQuery = query(collection(db, "users"), where("role", "==", "delivery"));
-  const snapshot = await getDocs(partnersQuery);
+export const findNearestDeliveryPartner = async (
+  storeKey,
+  excludePartnerIds = []
+) => {
+  const storeLocation = getStoreLocation(storeKey);
+  const snapshot = await getDocs(collection(db, "partners"));
 
-  const nearbyPartners = [];
-  const allOnlinePartners = [];
+  let nearest = null;
+  let nearestDistance = Infinity;
 
-  snapshot.forEach((docSnap) => {
-    const partner = docSnap.data();
-    if (!partner?.online || !partner?.lastKnownLocation) return;
+  snapshot.forEach((partnerDoc) => {
+    const partner = partnerDoc.data();
+    const partnerLocation = partner.location || partner.lastKnownLocation;
 
-    const distance = haversine(storeLocation, partner.lastKnownLocation);
-    const partnerData = {
-      id: docSnap.id,
-      name: partner.name,
-      distance,
-    };
+    if (
+      !partner?.isOnline ||
+      !partner?.isVerified ||
+      !partnerLocation ||
+      partner.currentOrderId ||
+      excludePartnerIds.includes(partnerDoc.id)
+    ) {
+      return;
+    }
 
-    if (distance <= 2.5) nearbyPartners.push(partnerData);
-    if (distance <= 3.5) allOnlinePartners.push(partnerData);
+    const distanceKm = haversine(storeLocation, partnerLocation);
+    if (distanceKm < nearestDistance) {
+      nearest = {
+        uid: partnerDoc.id,
+        ...partner,
+        distanceKm: Number(distanceKm.toFixed(2)),
+      };
+      nearestDistance = distanceKm;
+    }
   });
 
-  // 🔔 Step 1: Broadcast to nearby partners within 2.5 km
-  if (nearbyPartners.length === 0) {
-    console.warn("🚫 No online delivery partners within 2.5 km.");
-  }
+  return nearest;
+};
 
-  const broadcast = async (partnerList, reason = "initial") => {
-    const promises = partnerList.map((p) => {
-      const reqRef = doc(db, "orderRequests", `${orderId}_${p.id}`);
-      return setDoc(reqRef, {
-        orderId,
-        partnerId: p.id,
-        distance: p.distance,
-        storeKey,
-        reason,
-        timestamp: serverTimestamp(),
-        status: "pending",
-      });
-    });
-    await Promise.all(promises);
-    console.log(`📡 Broadcasted to ${partnerList.length} partner(s) (${reason})`);
+export const reservePartnerForOrder = async (partnerId, orderId) => {
+  await updateDoc(doc(db, "partners", partnerId), {
+    currentOrderId: orderId,
+    lastAssignedAt: serverTimestamp(),
+  });
+};
+
+export const releasePartnerForOrder = async (
+  partnerId,
+  { delivered = false, earningsDelta = 0 } = {}
+) => {
+  const updates = {
+    currentOrderId: null,
+    lastCompletedAt: delivered ? serverTimestamp() : null,
   };
 
-  await broadcast(nearbyPartners, "initial");
+  if (delivered) {
+    updates.deliveriesCompleted = increment(1);
+    updates.earnings = increment(earningsDelta);
+  }
 
-  // 🕒 Step 2: After 2 minutes, re-broadcast if no one accepted
-  setTimeout(async () => {
-    const requestsSnapshot = await getDocs(
-      query(collection(db, "orderRequests"), where("orderId", "==", orderId))
-    );
+  await updateDoc(doc(db, "partners", partnerId), updates);
+};
 
-    const stillPending = requestsSnapshot.docs.every(
-      (d) => d.data().status === "pending"
-    );
+export const reassignOrderToNextPartner = async ({
+  orderId,
+  storeKey,
+  rejectedPartnerId,
+}) => {
+  if (rejectedPartnerId) {
+    await updateDoc(doc(db, "partners", rejectedPartnerId), {
+      currentOrderId: null,
+      lastRejectedAt: serverTimestamp(),
+    });
+  }
 
-    if (stillPending && allOnlinePartners.length > 0) {
-      console.log("⏱ No response in 2 min, rebroadcasting to all online partners within 3.5km");
-      await broadcast(allOnlinePartners, "rebroadcast");
-    } else {
-      console.log("✅ Order accepted by some partner already or no partners online");
-    }
-  }, 120000); // 2 minutes in milliseconds
+  const nextPartner = await findNearestDeliveryPartner(
+    storeKey,
+    rejectedPartnerId ? [rejectedPartnerId] : []
+  );
+  if (!nextPartner) return null;
+
+  await reservePartnerForOrder(nextPartner.uid, orderId);
+  await updateDoc(doc(db, "orders", orderId), {
+    courierId: nextPartner.uid,
+    courierName: nextPartner.name || "Delivery Partner",
+    courierPhone: nextPartner.phone || "",
+    partnerVerified: Boolean(nextPartner.isVerified),
+    partnerDistanceKm: nextPartner.distanceKm,
+    reassignedAt: serverTimestamp(),
+    rejectedPartnerId: rejectedPartnerId || null,
+  });
+
+  return nextPartner;
 };

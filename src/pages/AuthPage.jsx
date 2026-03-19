@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const AuthPage = () => {
   const { login, signup } = useAuth();
@@ -58,6 +58,7 @@ const AuthPage = () => {
           <input
             type="email"
             name="email"
+            autoComplete="email"
             placeholder="Email"
             value={form.email}
             onChange={handleChange}
@@ -67,6 +68,7 @@ const AuthPage = () => {
           <input
             type="password"
             name="password"
+            autoComplete={isLogin ? "current-password" : "new-password"}
             placeholder="Password"
             value={form.password}
             onChange={handleChange}

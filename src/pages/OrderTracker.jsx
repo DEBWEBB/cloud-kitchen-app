@@ -1,11 +1,14 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "../firebase/firebaseConfig";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { motion } from "framer-motion";
+import { Clock3, MapPinned, PackageCheck, Phone, Route } from "lucide-react";
 import L from "leaflet";
+import { db } from "../firebase/firebaseConfig";
+import haversine from "../utils/haversineDistance";
+import maskPhone from "../utils/maskPhone";
 import "leaflet/dist/leaflet.css";
-import { motion, AnimatePresence } from "framer-motion";
 
 const deliveryIcon = new L.Icon({
   iconUrl: "/delivery-icon.png",
@@ -15,218 +18,199 @@ const deliveryIcon = new L.Icon({
 });
 
 const statusSteps = [
-  "Order Placed",
-  "Cooking",
-  "Dispatched",
-  "On the Way",
-  "Delivered",
+  { id: "pending", label: "Order Placed" },
+  { id: "picked", label: "Picked" },
+  { id: "on the way", label: "On the Way" },
+  { id: "delivered", label: "Delivered" },
 ];
+
+const estimateEtaMinutes = (courierLocation, deliveryLocation, status) => {
+  if (!courierLocation || !deliveryLocation) {
+    return status === "delivered" ? 0 : 25;
+  }
+
+  const distanceKm = haversine(courierLocation, deliveryLocation);
+  return Math.max(5, Math.round((distanceKm / 0.35) * 3));
+};
 
 export default function OrderTracker() {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
-  const [location, setLocation] = useState({ lat: 22.5726, lng: 88.3639 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!orderId) return;
 
-    const unsub = onSnapshot(doc(db, "orders", orderId), (docSnap) => {
+    const unsubscribe = onSnapshot(doc(db, "orders", orderId), (snapshot) => {
       setLoading(false);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setOrder(data);
-        if (data?.courierLocation) {
-          setLocation(data.courierLocation);
-        } else if (data?.location) {
-          setLocation(data.location);
-        }
-      } else {
-        setOrder(null);
-      }
+      setOrder(snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null);
     });
 
-    return () => unsub();
+    return () => unsubscribe();
   }, [orderId]);
 
-  useEffect(() => {
-    if (Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
-  }, []);
+  const courierLocation = order?.courierLocation || null;
+  const deliveryLocation = order?.location || courierLocation || { lat: 22.5726, lng: 88.3639 };
+  const mapCenter = courierLocation || deliveryLocation;
+  const etaMinutes = useMemo(
+    () => estimateEtaMinutes(courierLocation, deliveryLocation, order?.status),
+    [courierLocation, deliveryLocation, order?.status]
+  );
 
-  // Animation variants for status steps
-  const stepVariants = {
-    initial: { scale: 0.9, opacity: 0.5 },
-    active: { scale: 1.1, opacity: 1, boxShadow: "0 0 12px #ec4899" },
-    inactive: { scale: 1, opacity: 0.7 },
-  };
+  if (loading) {
+    return (
+      <div className="page-container pt-28">
+        <div className="card min-h-[320px] overflow-hidden p-8">
+          <div className="space-y-4 animate-pulse">
+            <div className="h-6 w-48 rounded-full bg-gray-200 dark:bg-gray-800" />
+            <div className="h-4 w-72 rounded-full bg-gray-200 dark:bg-gray-800" />
+            <div className="h-[320px] rounded-3xl bg-gray-200 dark:bg-gray-800" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="page-container pt-28">
+        <div className="card p-10 text-center">
+          <p className="section-title mb-2 text-lg">No order found</p>
+          <p className="muted">We could not find an active order for this tracking link.</p>
+          <button className="btn-primary mt-6" onClick={() => navigate("/orders")}>
+            Go to My Orders
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
-      className="min-h-screen p-6 pt-20 bg-gradient-to-br from-yellow-100 via-pink-100 to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-black text-black dark:text-white"
+      className="min-h-screen bg-gray-50 pt-24 text-black dark:bg-gray-950 dark:text-white"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.7 }}
+      transition={{ duration: 0.35 }}
     >
-      <motion.h1
-        className="text-4xl font-extrabold mb-4 text-center text-pink-700 dark:text-pink-300 tracking-tight"
-        initial={{ y: -30, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-      >
-        📍 Live Order Tracking
-      </motion.h1>
-      <p className="text-center text-lg mb-6">
-        Tracking Order ID: <span className="font-bold">{orderId}</span>
-      </p>
+      <div className="page-container space-y-6">
+        <section className="card overflow-hidden p-0">
+          <div className="bg-gradient-to-r from-pink-500 to-orange-400 px-6 py-6 text-white">
+            <span className="chip inline-flex border border-white/20 bg-white/15 text-white">Live order tracking</span>
+            <h1 className="mt-4 text-3xl font-bold">Track your order in real time</h1>
+            <p className="mt-2 text-sm text-white/85">Order ID: <span className="font-mono">{orderId}</span></p>
+          </div>
 
-      <AnimatePresence>
-        {loading ? (
-          <motion.div
-            className="flex flex-col items-center mt-10"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.img
-              src="/loading-anim.gif"
-              alt="Loading"
-              className="w-32 h-32 mb-4"
-              initial={{ scale: 0.8, rotate: -10 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ repeat: Infinity, duration: 1, repeatType: "reverse" }}
-            />
-            <motion.p
-              className="text-lg text-blue-500"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              Loading your order data...
-            </motion.p>
-          </motion.div>
-        ) : order ? (
-          <>
-            <motion.div
-              className="mt-4 mb-6 space-y-2 text-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <p>📦 <strong>Status:</strong> <span className="text-pink-600 dark:text-pink-400">{order.status}</span></p>
-              <p>💰 <strong>Total:</strong> <span className="text-green-600 dark:text-green-400">₹{order.total}</span></p>
-              <p>🚚 <strong>Delivery Partner:</strong> {order.courierName || "—"}</p>
-              <p>📞 <strong>Phone:</strong> {order.courierPhone || "—"}</p>
-            </motion.div>
+          <div className="grid gap-4 p-6 md:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-2xl bg-gray-50 p-4 dark:bg-gray-800">
+              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                <PackageCheck size={16} />
+                <span className="text-sm">Current status</span>
+              </div>
+              <p className="mt-2 text-lg font-semibold capitalize text-gray-900 dark:text-white">{order.status}</p>
+            </div>
+            <div className="rounded-2xl bg-gray-50 p-4 dark:bg-gray-800">
+              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                <Clock3 size={16} />
+                <span className="text-sm">Estimated ETA</span>
+              </div>
+              <p className="mt-2 text-lg font-semibold text-gray-900 dark:text-white">
+                {order.status === "delivered" ? "Delivered" : `${etaMinutes} min`}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-gray-50 p-4 dark:bg-gray-800">
+              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                <Route size={16} />
+                <span className="text-sm">Delivery charge</span>
+              </div>
+              <p className="mt-2 text-lg font-semibold text-gray-900 dark:text-white">Rs.{order.deliveryCharge || 0}</p>
+            </div>
+            <div className="rounded-2xl bg-gray-50 p-4 dark:bg-gray-800">
+              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                <Phone size={16} />
+                <span className="text-sm">Courier contact</span>
+              </div>
+              <p className="mt-2 text-lg font-semibold text-gray-900 dark:text-white">{maskPhone(order.courierPhone)}</p>
+            </div>
+          </div>
+        </section>
 
-            <motion.div
-              className="flex justify-center items-center gap-4 mb-6 flex-wrap"
-              initial="initial"
-              animate="active"
-            >
-              {statusSteps.map((step, idx) => {
-                const isActive = order?.status?.toLowerCase().includes(step.toLowerCase());
+        <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="card p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Delivery Progress</h2>
+            <div className="mt-6 space-y-4">
+              {statusSteps.map((step, index) => {
+                const currentIndex = statusSteps.findIndex((entry) => order.status?.toLowerCase() === entry.id);
+                const complete = currentIndex >= index || order.status === "delivered";
+
                 return (
-                  <motion.div
-                    key={step}
-                    variants={stepVariants}
-                    initial="initial"
-                    animate={isActive ? "active" : "inactive"}
-                    transition={{ duration: 0.3 }}
-                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300
-                      ${isActive
-                        ? "bg-pink-600 text-white glow-animation"
-                        : "bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400"}`}
-                  >
-                    {step}
-                  </motion.div>
+                  <div key={step.id} className="flex items-start gap-4">
+                    <div
+                      className={`mt-0.5 flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${
+                        complete
+                          ? "bg-gradient-to-r from-pink-500 to-orange-400 text-white shadow"
+                          : "bg-gray-100 text-gray-400 dark:bg-gray-800"
+                      }`}
+                    >
+                      {index + 1}
+                    </div>
+                    <div className="flex-1">
+                      <p className={`font-semibold ${complete ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-gray-400"}`}>
+                        {step.label}
+                      </p>
+                      <p className="muted mt-1">
+                        {complete ? "Completed or active in the current delivery flow." : "Waiting for the next delivery update."}
+                      </p>
+                    </div>
+                  </div>
                 );
               })}
-            </motion.div>
+            </div>
 
-            <motion.div
-              className="w-full h-[400px] rounded-xl overflow-hidden shadow-xl border-2 border-pink-500 glow-animation"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-            >
+            <div className="mt-6 rounded-2xl bg-gray-50 p-4 dark:bg-gray-800">
+              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                <MapPinned size={16} />
+                <span className="text-sm">Delivery address</span>
+              </div>
+              <p className="mt-2 font-medium text-gray-900 dark:text-white">{order.address || "No address available"}</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="chip">{order.courierName || "Partner assigned shortly"}</span>
+                <span className={`chip ${order.partnerVerified ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300" : ""}`}>
+                  {order.partnerVerified ? "Verified partner" : "Verification pending"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="card overflow-hidden p-0">
+            <div className="border-b border-gray-100 px-6 py-4 dark:border-gray-800">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Courier map</h2>
+              <p className="muted mt-1">Map updates automatically when the delivery partner shares live location.</p>
+            </div>
+            <div className="h-[460px]">
               <MapContainer
-                center={[location.lat, location.lng]}
-                zoom={16}
+                center={[mapCenter.lat, mapCenter.lng]}
+                zoom={15}
                 scrollWheelZoom={false}
                 style={{ height: "100%", width: "100%" }}
               >
                 <TileLayer
-                  attribution='&copy; OpenStreetMap contributors'
+                  attribution="&copy; OpenStreetMap contributors"
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                <Marker position={[location.lat, location.lng]} icon={deliveryIcon}>
-                  <Popup>
-                    {order?.courierName || "Delivery Partner"} is here 🚚
-                  </Popup>
+                <Marker position={[deliveryLocation.lat, deliveryLocation.lng]}>
+                  <Popup>Delivery destination</Popup>
                 </Marker>
+                {courierLocation && (
+                  <Marker position={[courierLocation.lat, courierLocation.lng]} icon={deliveryIcon}>
+                    <Popup>{order.courierName || "Courier"} is on the move</Popup>
+                  </Marker>
+                )}
               </MapContainer>
-            </motion.div>
-
-            <motion.p
-              className="mt-6 text-center text-sm text-gray-700 dark:text-gray-400"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              Location auto-refreshes in real time.
-            </motion.p>
-            <motion.div
-              className="flex justify-center mt-8"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
-              <button
-                className="px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded shadow hover:from-pink-600 hover:to-purple-600 font-bold transition-all duration-200"
-                onClick={() => navigate("/orders")}
-              >
-                View All My Orders
-              </button>
-            </motion.div>
-          </>
-        ) : (
-          <motion.div
-            className="flex flex-col items-center mt-10"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.img
-              src="/empty-box.png"
-              alt="No Order"
-              className="w-32 h-32 mb-4"
-              initial={{ scale: 0.8, rotate: -10 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ duration: 0.7 }}
-            />
-            <motion.p
-              className="text-lg text-red-500"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              No order found for this ID.
-            </motion.p>
-            <motion.button
-              className="mt-4 px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 font-bold transition-all duration-200"
-              onClick={() => navigate("/orders")}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
-              Go to My Orders
-            </motion.button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </div>
+          </div>
+        </section>
+      </div>
     </motion.div>
   );
 }

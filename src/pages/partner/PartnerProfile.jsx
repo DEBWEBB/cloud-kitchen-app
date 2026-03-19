@@ -7,6 +7,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 import { Loader2, Star, PackageCheck } from "lucide-react";
+import fallbackAvatar from "../../assets/HungryBOX-logo.jpg";
 
 export default function PartnerProfile() {
   const { user } = useAuth();
@@ -146,7 +147,7 @@ export default function PartnerProfile() {
       <div className="flex justify-center mb-4">
         <motion.img
           whileHover={{ scale: 1.05 }}
-          src={profile.photoURL ? `${profile.photoURL}?t=${Date.now()}` : "/default-avatar.png"}
+          src={profile.photoURL ? `${profile.photoURL}?t=${Date.now()}` : fallbackAvatar}
           alt="Selfie"
           className="w-32 h-32 rounded-full object-cover border-4 border-blue-500 shadow-lg"
         />

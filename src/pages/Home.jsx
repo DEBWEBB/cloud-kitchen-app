@@ -2,12 +2,15 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import mioAmoreImage from "../assets/mioamore.jpeg";
+import monginisImage from "../assets/monginis.png";
+import fallbackImage from "../assets/HungryBOX-logo.jpg";
 
 const STORES = [
   {
     id: "mio",
     name: "Mio Amore",
-    image: "/images/food1.png",
+    image: mioAmoreImage,
     badge: "🔥 Popular",
     rating: 4.7,
     reviews: 284,
@@ -19,7 +22,7 @@ const STORES = [
   {
     id: "monginis",
     name: "Monginis",
-    image: "/images/shop1.png",
+    image: monginisImage,
     badge: "⭐ Top Rated",
     rating: 4.5,
     reviews: 197,
@@ -206,7 +209,7 @@ function StoreCard({ store, index, hovered, onHover, onLeave, onClick }) {
           alt={store.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           onError={(e) => {
-            e.target.src = "https://via.placeholder.com/400x200?text=HungryBox";
+            e.target.src = fallbackImage;
           }}
         />
         {/* Overlay gradient */}

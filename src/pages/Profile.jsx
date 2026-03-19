@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import getCroppedImg from "../utils/cropImage";
 import { uploadAvatar } from "../utils/uploadAvatar";
+import fallbackAvatar from "../assets/HungryBOX-logo.jpg";
 
 function base64ToBlob(base64, mime = "image/jpeg") {
   const byteString = atob(base64.split(",")[1]);
@@ -118,11 +119,13 @@ export default function Profile() {
 
         <div className="flex flex-col items-center space-y-4">
           <motion.img
-            src={profile.photoURL || "/default-avatar.png"}
+            src={profile.photoURL || fallbackAvatar}
             alt="Profile"
             className="w-28 h-28 object-cover rounded-full border-4 border-pink-400 shadow-lg"
             whileHover={{ scale: 1.05 }}
-            onError={e => { e.target.src = "/default-avatar.png"; }}
+            onError={(e) => {
+              e.target.src = fallbackAvatar;
+            }}
           />
           <input
             type="file"

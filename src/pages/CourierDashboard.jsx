@@ -14,6 +14,7 @@ import {
 import { motion } from "framer-motion";
 import useLocationUpdater from "../utils/useLocationUpdater";
 import { toast } from "react-hot-toast";
+import fallbackImage from "../assets/HungryBOX-logo.jpg";
 
 const statusSteps = ["cooking", "dispatched", "on the way", "delivered"];
 
@@ -152,7 +153,7 @@ export default function CourierDashboard() {
                 {/* 🧭 Static Map View (Optional) */}
                 <div className="w-full">
                   <img
-                    src={`https://via.placeholder.com/600x200.png?text=Map+Disabled`}
+                    src={fallbackImage}
                     alt="Map route"
                     className="w-full h-40 object-cover"
                   />
