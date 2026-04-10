@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { doc, getDoc, onSnapshot, Timestamp, updateDoc } from "firebase/firestore";
-import { MapContainer, Marker, Polyline, Popup, TileLayer } from "react-leaflet";
-import L from "leaflet";
 import { AnimatePresence, motion } from "framer-motion";
 import toast from "react-hot-toast";
 import Webcam from "react-webcam";
@@ -28,7 +26,7 @@ import {
 } from "../../utils/orderSecurity";
 import useLocationUpdater from "../../utils/useLocationUpdater";
 import useRouteMetrics from "../../hooks/useRouteMetrics";
-import "leaflet/dist/leaflet.css";
+import DeliveryGoogleMap from "../../components/DeliveryGoogleMap";
 
 const statusOptions = ["pending", "picked", "on the way", "delivered"];
 const proofConfig = {
@@ -57,24 +55,6 @@ const proofConfig = {
     facingMode: "user",
   },
 };
-
-const buildMarkerIcon = (label, toneClass) =>
-  L.divIcon({
-    className: "",
-    iconSize: [44, 44],
-    iconAnchor: [22, 44],
-    popupAnchor: [0, -36],
-    html: `<div class="flex h-11 w-11 items-center justify-center rounded-[18px] ${toneClass} text-[11px] font-black tracking-wide text-white shadow-[0_18px_40px_-18px_rgba(15,23,42,0.8)] ring-4 ring-white/85">${label}</div>`,
-  });
-
-const customerIcon = buildMarkerIcon(
-  "Home",
-  "bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700"
-);
-const deliveryIcon = buildMarkerIcon(
-  "Rider",
-  "bg-gradient-to-br from-pink-500 via-fuchsia-500 to-orange-400"
-);
 
 export default function DeliveryStatusPage() {
   const { orderId } = useParams();
@@ -175,14 +155,6 @@ export default function DeliveryStatusPage() {
     Boolean(customerLocation && (location || courierLocation)),
     15000
   );
-  const routePath = useMemo(
-    () =>
-      Array.isArray(routeMetrics.geometry)
-        ? routeMetrics.geometry.map((point) => [point.lat, point.lng])
-        : [],
-    [routeMetrics.geometry]
-  );
-
   const handleStatusUpdate = async (nextStatus = status) => {
     if (!orderId) return;
 
@@ -726,49 +698,14 @@ export default function DeliveryStatusPage() {
               </div>
 
               <div className="h-[420px]">
-                <MapContainer
-                  center={mapCenter}
-                  zoom={15}
-                  scrollWheelZoom={false}
-                  style={{ height: "100%", width: "100%" }}
-                >
-                  <TileLayer
-                    attribution="&copy; OpenStreetMap contributors"
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-
-                  {order.location && (
-                    <Marker position={[order.location.lat, order.location.lng]} icon={customerIcon}>
-                      <Popup>
-                        <div className="text-sm">
-                          <strong>Customer location</strong>
-                        </div>
-                      </Popup>
-                    </Marker>
-                  )}
-
-                  {(location || order.courierLocation) && (
-                    <Marker
-                      position={[
-                        (location || order.courierLocation).lat,
-                        (location || order.courierLocation).lng,
-                      ]}
-                      icon={deliveryIcon}
-                    >
-                      <Popup>Courier live position</Popup>
-                    </Marker>
-                  )}
-                  {routePath.length >= 2 ? (
-                    <Polyline
-                      positions={routePath}
-                      pathOptions={{
-                        color: "#f97316",
-                        weight: 5,
-                        opacity: 0.8,
-                      }}
-                    />
-                  ) : null}
-                </MapContainer>
+                <DeliveryGoogleMap
+                  center={{ lat: mapCenter[0], lng: mapCenter[1] }}
+                  customerLocation={order.location}
+                  courierLocation={location || order.courierLocation}
+                  routePath={routeMetrics.geometry}
+                  customerLabel="Customer location"
+                  courierLabel="Courier live position"
+                />
               </div>
             </div>
 

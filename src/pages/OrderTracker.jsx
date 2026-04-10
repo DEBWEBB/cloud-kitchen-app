@@ -1,14 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { doc, onSnapshot } from "firebase/firestore";
-import {
-  MapContainer,
-  Marker,
-  Polyline,
-  Popup,
-  TileLayer,
-  useMap,
-} from "react-leaflet";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -22,15 +14,14 @@ import {
   Sparkles,
   Truck,
 } from "lucide-react";
-import L from "leaflet";
 import { db } from "../firebase/firebaseConfig";
 import { getStoreLocation } from "../utils/assignDeliveryPartner";
 import maskPhone from "../utils/maskPhone";
 import CustomerDeliveryLiveCard from "../components/CustomerDeliveryLiveCard";
+import DeliveryGoogleMap from "../components/DeliveryGoogleMap";
 import useRouteMetrics from "../hooks/useRouteMetrics";
 import usePaymentGatewayStatus from "../hooks/usePaymentGatewayStatus";
 import { revealOrderSecurityCode } from "../utils/orderSecurity";
-import "leaflet/dist/leaflet.css";
 
 const statusSteps = [
   { id: "pending", label: "Order placed" },
@@ -66,32 +57,6 @@ const formatPlacedAt = (value) => {
   }
   return String(value);
 };
-
-const buildMarkerIcon = (label, toneClass) =>
-  L.divIcon({
-    className: "",
-    iconSize: [42, 42],
-    iconAnchor: [21, 42],
-    popupAnchor: [0, -36],
-    html: `<div class="flex h-10 w-10 items-center justify-center rounded-2xl ${toneClass} text-xs font-bold text-white shadow-lg">${label}</div>`,
-  });
-
-const homeIcon = buildMarkerIcon("You", "bg-gradient-to-br from-slate-900 to-slate-700");
-const courierIcon = buildMarkerIcon("Rider", "bg-gradient-to-br from-pink-500 to-orange-400");
-
-function RecenterMap({ center }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (center?.lat && center?.lng) {
-      map.flyTo([center.lat, center.lng], Math.max(map.getZoom(), 15), {
-        duration: 1.1,
-      });
-    }
-  }, [center?.lat, center?.lng, map]);
-
-  return null;
-}
 
 export function OrderTrackerPanel({
   orderId: providedOrderId,
@@ -174,14 +139,6 @@ export function OrderTrackerPanel({
     typeof routeMetrics.distanceKm === "number"
       ? routeMetrics.distanceKm.toFixed(1)
       : null;
-  const routePath = useMemo(
-    () =>
-      Array.isArray(routeMetrics.geometry)
-        ? routeMetrics.geometry.map((point) => [point.lat, point.lng])
-        : [],
-    [routeMetrics.geometry]
-  );
-
   const copySecretCode = async () => {
     if (!secretCode) {
       return;
@@ -484,35 +441,14 @@ export function OrderTrackerPanel({
               </div>
 
               <div className="h-[460px] bg-gray-100 dark:bg-gray-800">
-                <MapContainer
-                  center={[mapCenter.lat, mapCenter.lng]}
-                  zoom={15}
-                  scrollWheelZoom={false}
-                  style={{ height: "100%", width: "100%" }}
-                >
-                  <RecenterMap center={mapCenter} />
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  {deliveryLocation ? (
-                    <Marker position={[deliveryLocation.lat, deliveryLocation.lng]} icon={homeIcon}>
-                      <Popup>Delivery destination</Popup>
-                    </Marker>
-                  ) : null}
-                  {courierLocation && (
-                    <Marker position={[courierLocation.lat, courierLocation.lng]} icon={courierIcon}>
-                      <Popup>Courier location</Popup>
-                    </Marker>
-                  )}
-                  {routePath.length >= 2 ? (
-                    <Polyline
-                      positions={routePath}
-                      pathOptions={{
-                        color: "#f97316",
-                        weight: 5,
-                        opacity: 0.8,
-                      }}
-                    />
-                  ) : null}
-                </MapContainer>
+                <DeliveryGoogleMap
+                  center={mapCenter}
+                  customerLocation={deliveryLocation}
+                  courierLocation={courierLocation}
+                  routePath={routeMetrics.geometry}
+                  customerLabel="Delivery destination"
+                  courierLabel="Courier location"
+                />
               </div>
             </div>
 
