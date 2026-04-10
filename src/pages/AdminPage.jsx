@@ -15,6 +15,10 @@ import { saveAs } from "file-saver";
 import fallbackImage from "../assets/HungryBOX-logo.jpg";
 import toast from "react-hot-toast";
 import normalizeSupabaseAssetUrl from "../utils/normalizeSupabaseAssetUrl";
+import {
+  requestNotificationPermissionSafely,
+  showNotificationSafely,
+} from "../utils/safeNotification";
 
 
 // Helper to check if date is within a range
@@ -77,8 +81,8 @@ export default function AdminPage() {
     const prev = prevOrders.current;
     newList.forEach(o => {
       const old = prev.find(x => x.id === o.id);
-      if (old && old.status !== o.status && Notification.permission === 'granted') {
-        new Notification("Order Status Changed", {
+      if (old && old.status !== o.status) {
+        showNotificationSafely("Order Status Changed", {
           body: `Order #${o.id.slice(0,6)} is now '${o.status}'`
         });
       }
@@ -88,8 +92,7 @@ export default function AdminPage() {
 
   // Request permission
   useEffect(() => {
-    if (Notification.permission !== "granted")
-      Notification.requestPermission();
+    requestNotificationPermissionSafely();
   }, []);
 
   // Filtering logic

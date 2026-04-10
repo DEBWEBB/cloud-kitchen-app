@@ -43,6 +43,10 @@ import {
   verifyPartnerShiftOtp,
 } from "../../utils/partnerShiftOtp";
 import { uploadPartnerSecurityAsset } from "../../utils/uploadPartnerSecurityAsset";
+import {
+  requestNotificationPermissionSafely,
+  showNotificationSafely,
+} from "../../utils/safeNotification";
 
 const quickStatuses = ["picked", "on the way"];
 const todayKey = () => new Date().toISOString().slice(0, 10);
@@ -457,7 +461,7 @@ export default function PartnerDashboard() {
     if (typeof Notification === "undefined") return;
 
     if (Notification.permission === "default") {
-      Notification.requestPermission().catch(() => {});
+      requestNotificationPermissionSafely();
     }
   }, []);
 
@@ -476,11 +480,9 @@ export default function PartnerDashboard() {
       const count = newOrders.length;
       toast.success(`${count} delivery order${count === 1 ? "" : "s"} assigned to you.`);
 
-      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-        new Notification("HungryBox Partner Alert", {
-          body: `${count} order${count === 1 ? "" : "s"} assigned to your delivery account.`,
-        });
-      }
+      showNotificationSafely("HungryBox Partner Alert", {
+        body: `${count} order${count === 1 ? "" : "s"} assigned to your delivery account.`,
+      });
     }
 
     seenAssignedOrderIds.current = nextIds;
