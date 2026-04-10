@@ -24,10 +24,17 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
-    const unsub = onSnapshot(q, (snap) => {
-      const arr = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setOrders(arr);
-    });
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const arr = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setOrders(arr);
+      },
+      (error) => {
+        console.error("Admin dashboard listener failed:", error);
+        setOrders([]);
+      }
+    );
 
     return () => unsub();
   }, []);

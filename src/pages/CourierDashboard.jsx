@@ -15,6 +15,7 @@ import { motion } from "framer-motion";
 import useLocationUpdater from "../utils/useLocationUpdater";
 import { toast } from "react-hot-toast";
 import fallbackImage from "../assets/HungryBOX-logo.jpg";
+import { verifyOrderSecurityCode } from "../utils/orderSecurity";
 
 const statusSteps = ["cooking", "dispatched", "on the way", "delivered"];
 
@@ -75,7 +76,12 @@ export default function CourierDashboard() {
 
   const confirmDelivery = async (order) => {
     const enteredCode = codeInputs[order.id];
-    if (enteredCode !== order.secretCode) {
+    try {
+      await verifyOrderSecurityCode({
+        orderId: order.id,
+        code: enteredCode,
+      });
+    } catch {
       toast.error("❌ Incorrect delivery code");
       return;
     }
@@ -143,7 +149,7 @@ export default function CourierDashboard() {
                       {order.status}
                     </span>
                   </p>
-                  {order.secretCode && (
+                  {(order.secretCode || order.secretCodeProtected) && (
                     <p className="text-sm mt-1 text-green-600">
                       🔐 Secret Code: <strong>Ask the customer</strong> at delivery.
                     </p>

@@ -1,75 +1,53 @@
-// src/pages/Home.jsx — Redesigned with richer UX
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import mioAmoreImage from "../assets/mioamore.jpeg";
-import monginisImage from "../assets/monginis.png";
+import { AnimatePresence, motion } from "framer-motion";
 import fallbackImage from "../assets/HungryBOX-logo.jpg";
-
-const STORES = [
-  {
-    id: "mio",
-    name: "Mio Amore",
-    image: mioAmoreImage,
-    badge: "🔥 Popular",
-    rating: 4.7,
-    reviews: 284,
-    tags: ["Cakes", "Pastries", "Bread"],
-    deliveryTime: "25–35 min",
-    minOrder: "₹100",
-    description: "Freshly baked cakes, pastries & celebration cakes",
-  },
-  {
-    id: "monginis",
-    name: "Monginis",
-    image: monginisImage,
-    badge: "⭐ Top Rated",
-    rating: 4.5,
-    reviews: 197,
-    tags: ["Chocolates", "Cupcakes", "Cookies"],
-    deliveryTime: "20–30 min",
-    minOrder: "₹80",
-    description: "Premium chocolates, cupcakes and festive sweets",
-  },
-];
+import { shopCatalog } from "../data/shops";
 
 const FOOD_QUOTES = [
-  "Life is short — eat the cake first! 🎂",
+  "Life is short, eat the cake first.",
   "Good food is the foundation of genuine happiness.",
-  "You can't buy happiness, but you can buy cake. 🍰",
+  "You cannot buy happiness, but you can buy cake.",
   "A party without cake is just a meeting.",
   "There is no sincerer love than the love of food.",
 ];
 
 const FEATURES = [
-  { icon: "🚀", label: "Fast Delivery" },
-  { icon: "🔒", label: "Safe Payment" },
-  { icon: "⭐", label: "Top Quality" },
-  { icon: "🎁", label: "Gift Wrapping" },
+  { icon: "Fast", label: "Fast Local Delivery" },
+  { icon: "Near", label: "Bethuadahari Area Only" },
+  { icon: "Safe", label: "Secure Checkout" },
+  { icon: "Fresh", label: "Fresh Bakery Picks" },
 ];
 
 export default function Home() {
   const navigate = useNavigate();
-  const [quote] = useState(() => FOOD_QUOTES[Math.floor(Math.random() * FOOD_QUOTES.length)]);
+  const [quote] = useState(
+    () => FOOD_QUOTES[Math.floor(Math.random() * FOOD_QUOTES.length)]
+  );
   const [search, setSearch] = useState("");
   const [hoveredStore, setHoveredStore] = useState(null);
 
-  const filtered = STORES.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase()) ||
-    s.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()))
-  );
+  const normalizedSearch = search.trim().toLowerCase();
+  const filtered = shopCatalog.filter((store) => {
+    if (!normalizedSearch) return true;
+
+    return (
+      store.name.toLowerCase().includes(normalizedSearch) ||
+      store.localName.toLowerCase().includes(normalizedSearch) ||
+      store.address.toLowerCase().includes(normalizedSearch) ||
+      store.tags.some((tag) => tag.toLowerCase().includes(normalizedSearch))
+    );
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-orange-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 transition-colors duration-300">
-      {/* ── Hero ───────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden pb-10 pt-12 px-4">
-        {/* Decorative circles */}
-        <div className="absolute -top-20 -right-20 w-72 h-72 bg-pink-200 dark:bg-pink-900/20 rounded-full blur-3xl opacity-40 pointer-events-none" />
-        <div className="absolute top-40 -left-20 w-60 h-60 bg-orange-200 dark:bg-orange-900/20 rounded-full blur-3xl opacity-30 pointer-events-none" />
+      <section className="relative overflow-hidden px-4 pb-10 pt-12">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-pink-200 opacity-40 blur-3xl dark:bg-pink-900/20" />
+        <div className="pointer-events-none absolute -left-20 top-40 h-60 w-60 rounded-full bg-orange-200 opacity-30 blur-3xl dark:bg-orange-900/20" />
 
-        <div className="max-w-4xl mx-auto text-center relative">
+        <div className="relative mx-auto max-w-4xl text-center">
           <motion.p
-            className="text-sm font-semibold tracking-widest text-pink-500 dark:text-pink-400 uppercase mb-3"
+            className="mb-3 text-sm font-semibold uppercase tracking-widest text-pink-500 dark:text-pink-400"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -78,19 +56,20 @@ export default function Home() {
           </motion.p>
 
           <motion.h1
-            className="text-4xl md:text-6xl font-extrabold text-gray-900 dark:text-white leading-tight"
+            className="text-4xl font-extrabold leading-tight text-gray-900 dark:text-white md:text-6xl"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            Delicious food, <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-orange-400">
-              delivered fast 🍰
+            Local cakes and bakery picks
+            <br />
+            <span className="bg-gradient-to-r from-pink-500 to-orange-400 bg-clip-text text-transparent">
+              delivered in Bethuadahari
             </span>
           </motion.h1>
 
           <motion.p
-            className="mt-4 text-gray-500 dark:text-gray-400 text-lg italic max-w-xl mx-auto"
+            className="mx-auto mt-4 max-w-xl text-lg italic text-gray-500 dark:text-gray-400"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
@@ -98,79 +77,94 @@ export default function Home() {
             "{quote}"
           </motion.p>
 
-          {/* Feature Pills */}
+          <motion.p
+            className="mt-4 text-sm font-medium text-gray-500 dark:text-gray-400"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.45 }}
+          >
+            Orders are currently served only from our nearby Bethuadahari partner shops.
+          </motion.p>
+
           <motion.div
-            className="flex flex-wrap justify-center gap-3 mt-8"
+            className="mt-8 flex flex-wrap justify-center gap-3"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            {FEATURES.map((f) => (
+            {FEATURES.map((feature) => (
               <span
-                key={f.label}
-                className="flex items-center gap-1.5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-gray-700 text-sm font-medium px-4 py-1.5 rounded-full shadow-sm"
+                key={feature.label}
+                className="flex items-center gap-1.5 rounded-full border border-gray-100 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
               >
-                {f.icon} {f.label}
+                <span className="text-pink-500 dark:text-pink-400">
+                  {feature.icon}
+                </span>
+                {feature.label}
               </span>
             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* ── Search ──────────────────────────────────────────────────── */}
-      <section className="max-w-xl mx-auto px-4 mb-8">
+      <section className="mx-auto mb-8 max-w-xl px-4">
         <motion.div
           className="relative"
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6 }}
         >
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">🔍</span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg text-gray-400">
+            Search
+          </span>
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search stores or items (e.g. cakes, cookies...)"
-            className="w-full pl-11 pr-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-white shadow-md focus:outline-none focus:ring-2 focus:ring-pink-400 transition placeholder-gray-400 text-sm"
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search local shops, Bengali names, or Bethuadahari address"
+            className="w-full rounded-2xl border border-gray-200 bg-white py-3 pl-20 pr-4 text-sm text-gray-800 shadow-md transition placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
-          {search && (
+          {search ? (
             <button
+              type="button"
               onClick={() => setSearch("")}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-gray-600"
             >
-              ✕
+              Clear
             </button>
-          )}
+          ) : null}
         </motion.div>
       </section>
 
-      {/* ── Store Grid ──────────────────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-4 pb-16">
-        <h2 className="text-xl font-bold text-gray-700 dark:text-gray-200 mb-6">
-          {search ? `Results for "${search}"` : "Our Stores"}
-          <span className="ml-2 text-sm font-normal text-gray-400">({filtered.length})</span>
+      <section className="mx-auto max-w-5xl px-4 pb-16">
+        <h2 className="mb-6 text-xl font-bold text-gray-700 dark:text-gray-200">
+          {search ? `Results for "${search}"` : "Local Shops"}
+          <span className="ml-2 text-sm font-normal text-gray-400">
+            ({filtered.length})
+          </span>
         </h2>
 
         <AnimatePresence mode="wait">
           {filtered.length === 0 ? (
             <motion.div
               key="empty"
-              className="text-center py-20 text-gray-400 dark:text-gray-500"
+              className="py-20 text-center text-gray-400 dark:text-gray-500"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <p className="text-4xl mb-3">🍽️</p>
-              <p className="text-lg font-medium">No stores match your search</p>
+              <p className="mb-3 text-4xl">No Match</p>
+              <p className="text-lg font-medium">No local shop matches your search</p>
               <button
+                type="button"
                 onClick={() => setSearch("")}
-                className="mt-4 text-pink-500 hover:text-pink-600 text-sm font-medium"
+                className="mt-4 text-sm font-medium text-pink-500 hover:text-pink-600"
               >
                 Clear search
               </button>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {filtered.map((store, index) => (
                 <StoreCard
                   key={store.id}
@@ -199,68 +193,80 @@ function StoreCard({ store, index, hovered, onHover, onLeave, onClick }) {
       onClick={onClick}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
-      className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100 dark:border-gray-700"
+      className="group cursor-pointer overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-md transition-all duration-300 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800"
       whileHover={{ y: -4 }}
     >
-      {/* Image */}
       <div className="relative h-52 overflow-hidden">
         <img
           src={store.image}
           alt={store.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          onError={(e) => {
-            e.target.src = fallbackImage;
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          onError={(event) => {
+            event.target.src = fallbackImage;
           }}
         />
-        {/* Overlay gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
-        {/* Badge */}
-        <span className="absolute top-3 left-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-gray-800 dark:text-white text-xs font-bold px-3 py-1 rounded-full shadow">
+        <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-gray-800 shadow backdrop-blur-sm dark:bg-gray-800/90 dark:text-white">
           {store.badge}
         </span>
 
-        {/* Delivery time chip */}
-        <span className="absolute bottom-3 right-3 bg-black/60 text-white text-xs font-medium px-2.5 py-1 rounded-full backdrop-blur-sm">
-          🕐 {store.deliveryTime}
+        <span className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
+          {store.deliveryTime}
         </span>
       </div>
 
-      {/* Content */}
       <div className="p-5">
-        <div className="flex items-start justify-between mb-1">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">
-            {store.name}
-          </h3>
-          {/* Rating */}
-          <div className="flex items-center gap-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-semibold px-2 py-0.5 rounded-lg">
-            ⭐ {store.rating}
-            <span className="text-xs font-normal text-gray-400 ml-0.5">({store.reviews})</span>
+        <div className="mb-1 flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 transition-colors group-hover:text-pink-600 dark:text-white dark:group-hover:text-pink-400">
+              {store.name}
+            </h3>
+            <p className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+              {store.localName}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-1 rounded-lg bg-green-50 px-2 py-0.5 text-sm font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
+            <span>{store.rating}</span>
+            <span className="text-xs font-normal text-gray-400">
+              ({store.reviews})
+            </span>
           </div>
         </div>
 
-        <p className="text-gray-500 dark:text-gray-400 text-sm mb-3">{store.description}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{store.type}</p>
+        {store.priceRange ? (
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {store.priceRange}
+          </p>
+        ) : null}
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          {store.description}
+        </p>
+        <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
+          {store.address}
+        </p>
 
-        {/* Tags */}
-        <div className="flex flex-wrap gap-1.5 mb-4">
+        <div className="mb-4 mt-4 flex flex-wrap gap-1.5">
           {store.tags.map((tag) => (
             <span
               key={tag}
-              className="text-xs bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-300 px-2.5 py-0.5 rounded-full font-medium"
+              className="rounded-full bg-pink-50 px-2.5 py-0.5 text-xs font-medium text-pink-600 dark:bg-pink-900/20 dark:text-pink-300"
             >
               {tag}
             </span>
           ))}
         </div>
 
-        {/* Footer row */}
         <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-400">Min. order: {store.minOrder}</span>
+          <span className="text-xs text-gray-400">{store.minOrder}</span>
           <motion.button
+            type="button"
             whileTap={{ scale: 0.95 }}
-            className="bg-gradient-to-r from-pink-500 to-orange-400 text-white text-sm font-semibold px-5 py-2 rounded-xl hover:from-pink-600 hover:to-orange-500 transition shadow-sm"
+            className="rounded-xl bg-gradient-to-r from-pink-500 to-orange-400 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-pink-600 hover:to-orange-500"
           >
-            Order Now →
+            {hovered ? "View Menu" : "Open Local Shop"}
           </motion.button>
         </div>
       </div>

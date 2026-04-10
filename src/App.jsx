@@ -20,7 +20,6 @@ const Shop = lazy(() => import("./pages/Shop"));
 const Cart = lazy(() => import("./pages/Cart"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const OrderHistory = lazy(() => import("./pages/OrderHistory"));
-const OrderTracker = lazy(() => import("./pages/OrderTracker"));
 const Profile = lazy(() => import("./pages/Profile"));
 const CourierDashboard = lazy(() => import("./pages/CourierDashboard"));
 const ShopDetails = lazy(() => import("./components/ShopDetails"));
@@ -31,6 +30,7 @@ const Signup = lazy(() => import("./pages/Signup"));
 const AboutUs = lazy(() => import("./pages/AboutUs"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const ShopConnect = lazy(() => import("./pages/ShopConnect"));
 const PartnerDashboard = lazy(() => import("./pages/partner/PartnerDashboard"));
 const DeliveryAuth = lazy(() => import("./pages/DeliveryAuth"));
 const DeliveryStatusPage = lazy(() => import("./pages/partner/DeliveryStatusPage"));
@@ -138,6 +138,14 @@ function App() {
               </AdminRoute>
             }
           />
+          <Route
+            path="/shop-connect"
+            element={
+              <AdminRoute>
+                <ShopConnect />
+              </AdminRoute>
+            }
+          />
 
           <Route path="/partner/dashboard" element={<PartnerDashboard />} />
           <Route
@@ -210,7 +218,7 @@ function App() {
             path="/track/:orderId"
             element={
               <PrivateRoute>
-                <OrderTracker />
+                <OrderHistory />
               </PrivateRoute>
             }
           />

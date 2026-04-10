@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
 import { menuItems } from "../data/menu";
+import { getApiUrl } from "../utils/apiBaseUrl";
 import {
   buildRecommendationResponse,
   isRecommendationQuery,
@@ -205,7 +206,7 @@ export default function ChatBot() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-      const res = await fetch("/api/ai-chat", {
+      const res = await fetch(getApiUrl("/api/ai-chat"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

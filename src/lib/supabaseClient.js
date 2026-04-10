@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const DEFAULT_SUPABASE_URL = "https://oedmcntahzowpxebgjlv.supabase.co";
 const DEFAULT_SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlmZWlmdGxyZ3RpdHZyc2ilsenRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3MzM0NjMsImV4cCI6MjA2NzMwOTQ2M30.jjqQMY8S7uEV4SuuIWMsg5yfhDs677giWEIL34sgUGk";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lZG1jbnRhaHpvd3B4ZWJnamx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MTE0MzcsImV4cCI6MjA4OTQ4NzQzN30.sryGPJ5AxcN02IorUvHZcGiyYSTRRYdGBsK-xA4ovh8";
 
 const supabaseUrl =
   import.meta.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;

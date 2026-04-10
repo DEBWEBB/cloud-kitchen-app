@@ -10,7 +10,7 @@ import { db } from "../firebase/firebaseConfig";
 import haversine from "./haversineDistance";
 
 const STORE_LOCATIONS = {
-  mio: { lat: 23.609938, lng: 88.383813, label: "Mio Amore" },
+  mio: { lat: 23.609938, lng: 88.383813, label: "Mio Amore - Bethuadahari" },
   monginis: { lat: 23.610062, lng: 88.384438, label: "Monginis" },
 };
 

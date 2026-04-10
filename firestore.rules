@@ -15,7 +15,45 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
 
+    function isPartner() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/partners/$(request.auth.uid));
+    }
+
+    function partnerDeliveryUpdateKeys() {
+      return [
+        "status",
+        "acceptedAt",
+        "pickedAt",
+        "deliveredAt",
+        "confirmedAt",
+        "lastUpdatedAt",
+        "courierLocation",
+        "liveTracking",
+        "pickupProofUrl",
+        "pickupProofCapturedAt",
+        "pickupSelfieUrl",
+        "pickupSelfieCapturedAt",
+        "deliveryProofUrl",
+        "deliveryProofCapturedAt",
+        "deliverySelfieUrl",
+        "deliverySelfieCapturedAt"
+      ];
+    }
+
+    function partnerClaimUpdateKeys() {
+      return [
+        "status",
+        "acceptedAt",
+        "lastUpdatedAt"
+      ];
+    }
+
     match /users/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    match /users/{userId}/cart/{docId} {
       allow read, write: if isOwner(userId) || isAdmin();
     }
 
@@ -24,10 +62,45 @@ service cloud.firestore {
       allow create, update: if isOwner(partnerId) || isAdmin();
     }
 
+    match /shopLiveState/{shopId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /orders/{orderId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update: if isSignedIn();
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid;
+
+      allow read: if isAdmin() ||
+        (
+          isSignedIn() &&
+          (
+            resource.data.userId == request.auth.uid ||
+            resource.data.courierId == request.auth.uid ||
+            (
+              isPartner() &&
+              resource.data.assignmentPending == true &&
+              resource.data.status == "pending"
+            )
+          )
+        );
+
+      allow update: if isAdmin() ||
+        (
+          isPartner() &&
+          (
+            (
+              resource.data.courierId == request.auth.uid &&
+              request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(partnerDeliveryUpdateKeys())
+            ) ||
+            (
+              resource.data.assignmentPending == true &&
+              request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(partnerClaimUpdateKeys())
+            )
+          )
+        );
     }
 
     match /fcmTokens/{tokenId} {

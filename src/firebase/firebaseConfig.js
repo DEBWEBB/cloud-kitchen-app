@@ -43,6 +43,10 @@ export const registerMessagingServiceWorker = async () => {
 
 export const requestForToken = async () => {
   try {
+    if (typeof Notification !== "undefined" && Notification.permission === "denied") {
+      return null;
+    }
+
     const registration = await registerMessagingServiceWorker();
     if (!registration) return null;
 
@@ -58,6 +62,9 @@ export const requestForToken = async () => {
 
     return null;
   } catch (error) {
+    if (error?.code === "messaging/permission-blocked") {
+      return null;
+    }
     console.error("Error retrieving token:", error);
     return null;
   }

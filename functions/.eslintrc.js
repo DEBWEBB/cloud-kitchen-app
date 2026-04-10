@@ -24,5 +24,9 @@ module.exports = {
       rules: {},
     },
   ],
-  globals: {},
+  globals: {
+    module: "readonly",
+    require: "readonly",
+    exports: "readonly",
+  },
 };

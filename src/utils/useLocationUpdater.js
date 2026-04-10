@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { doc, updateDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { db } from "../firebase/firebaseConfig";
@@ -15,15 +15,15 @@ export default function useLocationUpdater() {
   const watcherId = useRef(null);
   const auth = getAuth();
 
-  const stopUpdating = () => {
+  const stopUpdating = useCallback(() => {
     if (watcherId.current !== null) {
       navigator.geolocation.clearWatch(watcherId.current);
       watcherId.current = null;
     }
     setIsTracking(false);
-  };
+  }, []);
 
-  const startUpdating = (orderId) => {
+  const startUpdating = useCallback((orderId) => {
     if (!("geolocation" in navigator) || !orderId || watcherId.current !== null) {
       return;
     }
@@ -52,7 +52,7 @@ export default function useLocationUpdater() {
         }
 
         await Promise.allSettled(writes);
-        setIsTracking(true);
+        setIsTracking((current) => (current ? current : true));
       },
       (error) => {
         console.warn("Geo Error:", error.message);
@@ -60,9 +60,9 @@ export default function useLocationUpdater() {
       },
       DEFAULT_OPTIONS
     );
-  };
+  }, [auth, stopUpdating]);
 
-  useEffect(() => stopUpdating, []);
+  useEffect(() => stopUpdating, [stopUpdating]);
 
   return { location, isTracking, startUpdating, stopUpdating };
 }

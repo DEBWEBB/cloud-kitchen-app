@@ -3,15 +3,24 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { MapContainer, Marker, TileLayer, useMapEvents } from "react-leaflet";
 import L from "leaflet";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
 import { useCart } from "../context/CartContext";
 import { auth, db } from "../firebase/firebaseConfig";
+import { getStoreLocation } from "../utils/assignDeliveryPartner";
+import { requestPartnerAssignment } from "../utils/requestPartnerAssignment";
+import { requestRouteMetrics } from "../utils/requestRouteMetrics";
 import {
-  findNearestDeliveryPartner,
-  reservePartnerForOrder,
-  getStoreLocation,
-} from "../utils/assignDeliveryPartner";
-import qrImage from "../assets/qr.jpg";
+  createRazorpayPaymentOrder,
+  loadRazorpayCheckoutScript,
+  verifyRazorpayClientPayment,
+} from "../utils/paymentGateway";
+import { registerOrderSecurityCode } from "../utils/orderSecurity";
 import "leaflet/dist/leaflet.css";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -71,8 +80,10 @@ export default function Checkout() {
   });
   const [distance, setDistance] = useState(0);
   const [deliveryCharge, setDeliveryCharge] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState("UPI");
-  const [showUPIModal, setShowUPIModal] = useState(false);
+  const [distanceSourceLabel, setDistanceSourceLabel] = useState("Straight-line fallback");
+  const [estimatedTravelMinutes, setEstimatedTravelMinutes] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("ONLINE");
+  const [gatewayBusy, setGatewayBusy] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
 
   const hasItems = cart.length > 0;
@@ -85,11 +96,67 @@ export default function Checkout() {
   );
   const grandTotal = productTotal + deliveryCharge;
 
-  const updateLocation = (location) => {
+  const updateLocation = async (location) => {
     setForm((current) => ({ ...current, location }));
-    const km = getDistanceInKm(selectedStore, location);
-    setDistance(Number(km.toFixed(2)));
-    setDeliveryCharge(calculateDeliveryCharge(km));
+    const fallbackKm = Number(getDistanceInKm(selectedStore, location).toFixed(2));
+    setDistance(fallbackKm);
+    setDeliveryCharge(calculateDeliveryCharge(fallbackKm));
+    setDistanceSourceLabel("Straight-line fallback");
+    setEstimatedTravelMinutes(null);
+
+    const metrics = await requestRouteMetrics({
+      from: selectedStore,
+      to: location,
+    });
+
+    if (typeof metrics?.distanceKm === "number") {
+      setDistance(metrics.distanceKm);
+      setDeliveryCharge(calculateDeliveryCharge(metrics.distanceKm));
+    }
+
+    setDistanceSourceLabel(metrics?.sourceLabel || "Straight-line fallback");
+    setEstimatedTravelMinutes(metrics?.travelMinutes ?? null);
+  };
+
+  const buildOrderBase = ({
+    user,
+    orderId,
+    distanceKm,
+    deliveryFee,
+    routeEtaMinutes,
+    routeSourceLabel,
+    routeSource,
+  }) => {
+    const partnerShare = Math.round(deliveryFee * 0.9);
+    const ownerShare = deliveryFee - partnerShare;
+
+    return {
+      id: orderId,
+      userId: user.uid,
+      items: cart.map((item) => ({
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity || 1,
+        brand: item.brand || item.shop || "Unknown",
+        shop: item.shop || selectedStoreKey,
+      })),
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      address: form.address.trim(),
+      location: form.location,
+      store: selectedStoreKey,
+      storeName: selectedStore.label,
+      productTotal,
+      deliveryCharge: deliveryFee,
+      partnerShare,
+      ownerShare,
+      distanceKm,
+      routeEtaMinutes: routeEtaMinutes || null,
+      distanceSourceLabel: routeSourceLabel || "Straight-line fallback",
+      distanceSource: routeSource || "haversine-fallback",
+      total: productTotal + deliveryFee,
+      secretCodeProtected: true,
+    };
   };
 
   useEffect(() => {
@@ -116,7 +183,11 @@ export default function Checkout() {
     );
   }, [form.location, hasItems, selectedStore]);
 
-  const placeConfirmedOrder = async () => {
+  const placeConfirmedOrder = async ({
+    predefinedOrderId = "",
+    paymentContext = {},
+    draftSecretCode = "",
+  } = {}) => {
     const user = auth.currentUser;
 
     if (!user) {
@@ -136,53 +207,146 @@ export default function Checkout() {
       return;
     }
 
-    const partner = await findNearestDeliveryPartner(selectedStoreKey);
-    if (!partner) {
-      toast.error("No verified online delivery partner is available right now.");
-      return;
-    }
+    const orderRef = predefinedOrderId
+      ? doc(db, "orders", predefinedOrderId)
+      : doc(collection(db, "orders"));
+    const currentSecretCode = draftSecretCode || generateSecretCode();
+    const deliveryMetrics = await requestRouteMetrics({
+      from: selectedStore,
+      to: form.location,
+    });
+    const finalDistanceKm =
+      deliveryMetrics?.distanceKm ||
+      Number(getDistanceInKm(selectedStore, form.location).toFixed(2));
+    const finalDeliveryCharge = calculateDeliveryCharge(finalDistanceKm);
 
-    const partnerShare = Math.round(deliveryCharge * 0.9);
-    const ownerShare = deliveryCharge - partnerShare;
-    const order = {
-      userId: user.uid,
-      items: cart.map((item) => ({
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity || 1,
-        brand: item.brand || item.shop || "Unknown",
-        shop: item.shop || selectedStoreKey,
-      })),
-      name: form.name.trim(),
-      phone: form.phone.trim(),
-      address: form.address.trim(),
-      location: form.location,
-      store: selectedStoreKey,
-      storeName: selectedStore.label,
-      productTotal,
-      deliveryCharge,
-      partnerShare,
-      ownerShare,
-      distanceKm: distance,
-      total: grandTotal,
-      paymentMethod,
-      status: "pending",
-      createdAt: serverTimestamp(),
-      secretCode: generateSecretCode(),
-      courierId: partner.uid,
-      courierName: partner.name || "Delivery Partner",
-      courierPhone: partner.phone || "",
-      partnerVerified: Boolean(partner.isVerified),
-      partnerDistanceKm: partner.distanceKm || null,
+    setDistance(finalDistanceKm);
+    setDeliveryCharge(finalDeliveryCharge);
+    setDistanceSourceLabel(
+      deliveryMetrics?.sourceLabel || "Straight-line fallback"
+    );
+    setEstimatedTravelMinutes(deliveryMetrics?.travelMinutes ?? null);
+
+    const orderBase = buildOrderBase({
+      user,
+      orderId: orderRef.id,
+      distanceKm: finalDistanceKm,
+      deliveryFee: finalDeliveryCharge,
+      routeEtaMinutes: deliveryMetrics?.travelMinutes ?? null,
+      routeSourceLabel:
+        deliveryMetrics?.sourceLabel || "Straight-line fallback",
+      routeSource: deliveryMetrics?.source || "haversine-fallback",
+    });
+    let assignment = {
+      assignmentPending: true,
+      partner: null,
     };
 
-    const docRef = await addDoc(collection(db, "orders"), order);
-    await reservePartnerForOrder(partner.uid, docRef.id);
-    setOrderPlaced(true);
-    toast.success(`Order placed. Assigned to ${order.courierName}.`);
-    clearCart();
-    navigate(`/success?orderId=${docRef.id}`);
-    return true;
+    try {
+      assignment = await requestPartnerAssignment({
+        orderId: orderRef.id,
+        storeKey: selectedStoreKey,
+      });
+
+      if (assignment?.availabilityAlert) {
+        toast.error(assignment.availabilityAlert);
+      }
+    } catch (error) {
+      console.error("Partner assignment request failed:", error);
+      toast.error("Could not check partner availability. Order will remain pending assignment.");
+    }
+
+    const assignedPartner = assignment.partner;
+    const order = {
+      ...orderBase,
+      paymentMethod,
+      paymentProvider:
+        paymentMethod === "ONLINE" ? "Razorpay" : "cash",
+      paymentReference: paymentContext.gatewayPaymentId || "",
+      paymentStatus:
+        paymentMethod === "ONLINE"
+          ? paymentContext.paymentStatus || "verification_pending"
+          : "pending_cod",
+      paymentRecordedAt:
+        paymentMethod === "ONLINE"
+          ? paymentContext.verifiedAt || new Date().toISOString()
+          : null,
+      paymentAudit: [
+        {
+          method: paymentMethod,
+          provider: paymentMethod === "ONLINE" ? "Razorpay" : "cash",
+          reference: paymentContext.gatewayPaymentId || "",
+          gatewayOrderId: paymentContext.gatewayOrderId || "",
+          gatewayPaymentId: paymentContext.gatewayPaymentId || "",
+          status:
+            paymentMethod === "ONLINE"
+              ? paymentContext.paymentStatus || "verification_pending"
+              : "pending_cod",
+          recordedAt:
+            paymentMethod === "ONLINE"
+              ? paymentContext.verifiedAt || new Date().toISOString()
+              : new Date().toISOString(),
+        },
+      ],
+      paymentGateway: paymentMethod === "ONLINE" ? "razorpay" : "",
+      paymentGatewayOrderId: paymentContext.gatewayOrderId || "",
+      paymentGatewayPaymentId: paymentContext.gatewayPaymentId || "",
+      status: "pending",
+      confirmedAt: serverTimestamp(),
+      lastUpdatedAt: serverTimestamp(),
+      courierId: assignedPartner?.uid || null,
+      courierName: assignedPartner?.name || "",
+      courierPhone: assignedPartner?.phone || "",
+      partnerVerified: Boolean(assignedPartner?.isVerified),
+      partnerDistanceKm: assignedPartner?.distanceKm || null,
+      partnerTravelMinutes: assignedPartner?.travelMinutes || null,
+      partnerDistanceSource: assignedPartner?.distanceSource || "",
+      partnerLineDistanceKm: assignedPartner?.lineDistanceKm || null,
+      assignmentPending: assignment.assignmentPending ?? !assignedPartner,
+      nearbyPartnerCount: assignment?.nearbyOnlinePartners ?? 0,
+      deliveryDelayNotice: assignment?.availabilityAlert || "",
+    };
+
+    try {
+      if (predefinedOrderId) {
+        await setDoc(orderRef, order, { merge: true });
+      } else {
+        await setDoc(orderRef, {
+          ...order,
+          createdAt: serverTimestamp(),
+        });
+      }
+
+      try {
+        await registerOrderSecurityCode({
+          orderId: orderRef.id,
+          secretCode: currentSecretCode,
+        });
+      } catch (securityError) {
+        console.error("Order security registration failed:", securityError);
+        toast.error(
+          "Order placed, but secure delivery-code verification is not ready yet. Restart the backend before delivery confirmation."
+        );
+      }
+
+      setOrderPlaced(true);
+      toast.success(
+        assignedPartner
+          ? `Order placed. ${assignedPartner.name || "Delivery partner"} has been assigned.`
+          : "Order placed. Looking for the nearest delivery partner."
+      );
+      clearCart();
+      navigate(`/success?orderId=${orderRef.id}`);
+      return true;
+    } catch (error) {
+      console.error("Order placement failed:", error);
+      toast.error(
+        predefinedOrderId
+          ? "Payment was captured, but final order sync failed. The order draft is saved for recovery."
+          : "Order could not be placed. Please try again."
+      );
+      return false;
+    }
   };
 
   const handlePlaceOrder = async () => {
@@ -192,8 +356,140 @@ export default function Checkout() {
       return;
     }
 
-    if (paymentMethod === "UPI") {
-      setShowUPIModal(true);
+    if (paymentMethod === "ONLINE") {
+      if (!form.name.trim() || !form.phone.trim() || !form.address.trim() || !form.location) {
+        toast.error("Please complete your details and pin your location.");
+        return;
+      }
+
+      let draftCreated = false;
+      let paymentSettled = false;
+      let draftOrderRef = null;
+
+      try {
+        setGatewayBusy(true);
+        const gatewayReady = await loadRazorpayCheckoutScript();
+        if (!gatewayReady || !window.Razorpay) {
+          throw new Error("Could not load the Razorpay checkout.");
+        }
+
+        const draftOrderId = doc(collection(db, "orders")).id;
+        const draftSecretCode = generateSecretCode();
+        const paymentOrder = await createRazorpayPaymentOrder({
+          merchantOrderId: draftOrderId,
+          amount: grandTotal,
+          currency: "INR",
+          receipt: `HB-${draftOrderId.slice(-10).toUpperCase()}`,
+          customer: {
+            name: form.name.trim(),
+            email: auth.currentUser.email || "",
+            phone: form.phone.trim(),
+          },
+        });
+        draftOrderRef = doc(db, "orders", draftOrderId);
+        await setDoc(draftOrderRef, {
+          ...buildOrderBase({
+            user: auth.currentUser,
+            orderId: draftOrderId,
+          }),
+          paymentMethod: "ONLINE",
+          paymentProvider: "Razorpay",
+          paymentReference: "",
+          paymentStatus: "gateway_order_created",
+          paymentRecordedAt: new Date().toISOString(),
+          paymentAudit: [
+            {
+              method: "ONLINE",
+              provider: "Razorpay",
+              reference: "",
+              gatewayOrderId: paymentOrder.gatewayOrderId,
+              gatewayPaymentId: "",
+              status: "gateway_order_created",
+              recordedAt: new Date().toISOString(),
+            },
+          ],
+          paymentGateway: "razorpay",
+          paymentGatewayOrderId: paymentOrder.gatewayOrderId,
+          paymentGatewayPaymentId: "",
+          status: "payment_initiated",
+          assignmentPending: true,
+          nearbyPartnerCount: 0,
+          deliveryDelayNotice: "",
+          courierId: null,
+          courierName: "",
+          courierPhone: "",
+          partnerVerified: false,
+          partnerDistanceKm: null,
+          createdAt: serverTimestamp(),
+          lastUpdatedAt: serverTimestamp(),
+        });
+        draftCreated = true;
+
+        const paymentResponse = await new Promise((resolve, reject) => {
+          const checkout = new window.Razorpay({
+            key: paymentOrder.keyId,
+            amount: paymentOrder.amountPaise,
+            currency: paymentOrder.currency,
+            name: "HungryBox",
+            description: `${selectedStore.label} online order`,
+            order_id: paymentOrder.gatewayOrderId,
+            prefill: {
+              name: form.name.trim(),
+              email: auth.currentUser.email || "",
+              contact: form.phone.trim(),
+            },
+            notes: {
+              merchantOrderId: draftOrderId,
+              store: selectedStore.label,
+            },
+            theme: {
+              color: "#f43f5e",
+            },
+            handler: (response) => resolve(response),
+            modal: {
+              ondismiss: () => reject(new Error("Payment cancelled.")),
+            },
+          });
+
+          checkout.on("payment.failed", (response) => {
+            reject(
+              new Error(
+                response?.error?.description || "Online payment failed."
+              )
+            );
+          });
+
+          checkout.open();
+        });
+
+        const verifiedPayment = await verifyRazorpayClientPayment({
+          merchantOrderId: draftOrderId,
+          ...paymentResponse,
+        });
+        paymentSettled = true;
+
+        await placeConfirmedOrder({
+          predefinedOrderId: draftOrderId,
+          draftSecretCode,
+          paymentContext: {
+            gatewayOrderId: verifiedPayment.gatewayOrderId,
+            gatewayPaymentId: verifiedPayment.gatewayPaymentId,
+            paymentStatus: verifiedPayment.status,
+            verifiedAt: new Date().toISOString(),
+          },
+        });
+      } catch (error) {
+        if (draftCreated && !paymentSettled && draftOrderRef) {
+          try {
+            await deleteDoc(draftOrderRef);
+          } catch (cleanupError) {
+            console.error("Draft order cleanup failed:", cleanupError);
+          }
+        }
+        toast.error(error.message || "Could not complete online payment.");
+      } finally {
+        setGatewayBusy(false);
+      }
       return;
     }
 
@@ -201,7 +497,7 @@ export default function Checkout() {
   };
 
   return (
-    <div className="min-h-screen bg-white px-6 pb-10 pt-20 text-black dark:bg-gray-900 dark:text-white">
+    <div className="min-h-screen bg-white px-6 pb-32 pt-20 text-black dark:bg-gray-900 dark:text-white md:pb-10">
       <div className="mx-auto max-w-5xl">
         <h1 className="mb-2 text-3xl font-bold">Checkout</h1>
         <p className="mb-8 text-sm text-gray-500 dark:text-gray-400">
@@ -300,6 +596,18 @@ export default function Checkout() {
                 <span className="text-gray-500 dark:text-gray-400">Distance</span>
                 <span>{distance || 0} km</span>
               </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 dark:text-gray-400">Distance basis</span>
+                <span>{distanceSourceLabel}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 dark:text-gray-400">ETA</span>
+                <span>
+                  {typeof estimatedTravelMinutes === "number"
+                    ? `${estimatedTravelMinutes} min`
+                    : "Updating"}
+                </span>
+              </div>
             </div>
 
             <label className="mb-2 block text-sm font-medium">Payment Method</label>
@@ -308,9 +616,14 @@ export default function Checkout() {
               onChange={(event) => setPaymentMethod(event.target.value)}
               className={inputClassName}
             >
-              <option value="UPI">UPI QR</option>
+              <option value="ONLINE">Online Payment (UPI / Cards / Netbanking)</option>
               <option value="COD">Cash on Delivery</option>
             </select>
+            {paymentMethod === "ONLINE" ? (
+              <div className="mt-4 rounded-2xl border border-pink-100 bg-pink-50 px-4 py-3 text-sm text-pink-700 dark:border-pink-900/30 dark:bg-pink-950/20 dark:text-pink-200">
+                Pay securely through Razorpay. The final order record will store the gateway payment ID and verification status.
+              </div>
+            ) : null}
 
             <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
               <span className="text-base font-semibold">Total</span>
@@ -319,42 +632,39 @@ export default function Checkout() {
 
             <button
               onClick={handlePlaceOrder}
+              disabled={gatewayBusy}
               className="mt-5 w-full rounded-2xl bg-gradient-to-r from-pink-500 to-orange-400 px-4 py-3 font-semibold text-white transition hover:from-pink-600 hover:to-orange-500"
             >
-              Place Order
+              {gatewayBusy ? "Processing payment..." : "Place Order"}
             </button>
           </aside>
         </div>
-      </div>
+        {hasItems ? (
+          <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white/95 px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-3 shadow-[0_-14px_35px_rgba(15,23,42,0.12)] backdrop-blur dark:border-gray-800 dark:bg-gray-950/95 md:hidden">
+            <div className="mx-auto flex max-w-5xl items-center gap-3">
+              <div className="min-w-0 flex-1 rounded-2xl bg-gray-100 px-4 py-3 dark:bg-gray-800">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                  Final total
+                </p>
+                <p className="mt-1 text-lg font-bold text-gray-900 dark:text-white">
+                  Rs.{grandTotal}
+                </p>
+                <p className="truncate text-xs text-gray-500 dark:text-gray-400">
+                  {itemCount} item{itemCount === 1 ? "" : "s"} - {distanceSourceLabel}
+                </p>
+              </div>
 
-      {showUPIModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 text-center shadow-xl dark:bg-gray-800">
-            <h2 className="mb-2 text-xl font-bold">Scan UPI QR</h2>
-            <img src={qrImage} alt="UPI QR" className="mx-auto h-48 w-48 rounded-2xl" />
-            <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">
-              Complete the payment, then confirm below to place the order.
-            </p>
-            <button
-              onClick={async () => {
-                const placed = await placeConfirmedOrder();
-                if (placed) {
-                  setShowUPIModal(false);
-                }
-              }}
-              className="mt-5 w-full rounded-2xl bg-green-600 px-4 py-3 font-semibold text-white transition hover:bg-green-700"
-            >
-              I Have Paid
-            </button>
-            <button
-              onClick={() => setShowUPIModal(false)}
-              className="mt-3 text-sm text-red-500 underline"
-            >
-              Cancel
-            </button>
+              <button
+                onClick={handlePlaceOrder}
+                disabled={gatewayBusy}
+                className="shrink-0 rounded-2xl bg-gradient-to-r from-pink-500 to-orange-400 px-5 py-4 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(244,114,182,0.25)] transition hover:from-pink-600 hover:to-orange-500 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {gatewayBusy ? "Processing..." : "Place Order"}
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        ) : null}
+      </div>
     </div>
   );
 }

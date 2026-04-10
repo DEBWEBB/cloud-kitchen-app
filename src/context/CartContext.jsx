@@ -9,11 +9,30 @@ export const useCart = () => useContext(CartContext);
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const [userId, setUserId] = useState(null);
+  const localCartKey = userId ? `cart_fallback_${userId}` : "cart_fallback_guest";
+
+  const persistLocalCart = (items) => {
+    try {
+      localStorage.setItem(localCartKey, JSON.stringify(items));
+    } catch {}
+  };
+
+  const readLocalCart = () => {
+    try {
+      return JSON.parse(localStorage.getItem(localCartKey) || "[]");
+    } catch {
+      return [];
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) setUserId(user.uid);
-      else setUserId(null);
+      if (user) {
+        setUserId(user.uid);
+      } else {
+        setUserId(null);
+        setCart(readLocalCart());
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -23,16 +42,29 @@ export const CartProvider = ({ children }) => {
 
     const userRef = doc(db, "users", userId, "cart", "current");
 
-    const unsub = onSnapshot(userRef, (docSnap) => {
-      if (docSnap.exists()) {
-        setCart(docSnap.data().items || []);
+    const unsub = onSnapshot(
+      userRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const nextItems = docSnap.data().items || [];
+          setCart(nextItems);
+          persistLocalCart(nextItems);
+        } else {
+          const fallbackItems = readLocalCart();
+          setCart(fallbackItems);
+        }
+      },
+      (error) => {
+        console.error("Cart listener failed:", error);
+        setCart(readLocalCart());
       }
-    });
+    );
 
     return () => unsub();
   }, [userId]);
 
   const saveCart = async (items) => {
+    persistLocalCart(items);
     if (userId) {
       const userRef = doc(db, "users", userId, "cart", "current");
       await setDoc(userRef, { items });
@@ -85,6 +117,12 @@ export const CartProvider = ({ children }) => {
     saveCart([]);
   };
 
+  const setCartItems = (items) => {
+    const normalized = Array.isArray(items) ? items : [];
+    setCart(normalized);
+    saveCart(normalized);
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -93,6 +131,8 @@ export const CartProvider = ({ children }) => {
         removeFromCart,
         updateQuantity,
         clearCart,
+        setCart: setCartItems,
+        setCartItems,
       }}
     >
       {children}

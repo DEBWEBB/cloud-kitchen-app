@@ -22,13 +22,20 @@ export default function OrderList() {
       orderBy("createdAt", "desc")
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setOrders(data);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setOrders(data);
+      },
+      (error) => {
+        console.error("OrderList listener failed:", error);
+        setOrders([]);
+      }
+    );
 
     return () => unsubscribe();
   }, [user]);

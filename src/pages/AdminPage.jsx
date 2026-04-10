@@ -13,6 +13,8 @@ import "chart.js/auto";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
 import fallbackImage from "../assets/HungryBOX-logo.jpg";
+import toast from "react-hot-toast";
+import normalizeSupabaseAssetUrl from "../utils/normalizeSupabaseAssetUrl";
 
 
 // Helper to check if date is within a range
@@ -32,8 +34,14 @@ export default function AdminPage() {
   // Fetch users once
   useEffect(() => {
     (async () => {
-      const snap = await getDocs(collection(db, "users"));
-      setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      try {
+        const snap = await getDocs(collection(db, "users"));
+        setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (error) {
+        console.error("Admin users fetch failed:", error);
+        toast.error("Could not load users.");
+        setUsers([]);
+      }
     })();
   }, []);
 
@@ -43,15 +51,23 @@ export default function AdminPage() {
       collection(db, "orders"),
       orderBy("createdAt", "desc")
     );
-    const unsub = onSnapshot(q, snapshot => {
-      const data = snapshot.docs.map(d => ({
-        id: d.id,
-        ...d.data(),
-        createdAt: d.data().createdAt?.toDate?.() || new Date(d.data().createdAt)
-      }));
-      setOrders(data);
-      notifyChanges(data);
-    });
+    const unsub = onSnapshot(
+      q,
+      snapshot => {
+        const data = snapshot.docs.map(d => ({
+          id: d.id,
+          ...d.data(),
+          createdAt: d.data().createdAt?.toDate?.() || new Date(d.data().createdAt)
+        }));
+        setOrders(data);
+        notifyChanges(data);
+      },
+      error => {
+        console.error("Admin orders listener failed:", error);
+        toast.error("Could not load orders.");
+        setOrders([]);
+      }
+    );
     return () => unsub();
   }, []);
 
@@ -226,7 +242,7 @@ export default function AdminPage() {
         {users.map(u=>(
           <div key={u.id} className="bg-white dark:bg-gray-800 rounded shadow p-4 flex items-center gap-4">
             <img
-              src={u.photoURL || fallbackImage}
+              src={normalizeSupabaseAssetUrl(u.photoURL) || fallbackImage}
               className="w-16 h-16 rounded-full object-cover"
               alt={u.name||"User"}
             />

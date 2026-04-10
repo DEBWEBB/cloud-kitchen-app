@@ -24,14 +24,17 @@ const Cart = () => {
             <p className="muted">Browse the menu and add a few favorites first.</p>
           </div>
         ) : (
-          <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+          <div className="grid gap-6 pb-36 lg:grid-cols-[1.3fr_0.7fr] lg:pb-0">
             <div className="space-y-4">
               {cart.map((item) => (
-                <div key={item.id} className="card flex gap-4 p-4 md:p-5">
+                <div
+                  key={item.id}
+                  className="card flex flex-col gap-4 p-4 sm:flex-row md:p-5"
+                >
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="h-24 w-24 rounded-2xl object-cover md:h-28 md:w-28"
+                    className="h-44 w-full rounded-2xl object-cover sm:h-28 sm:w-28"
                   />
                   <div className="flex flex-1 flex-col gap-3">
                     <div className="flex items-start justify-between gap-4">
@@ -92,7 +95,7 @@ const Cart = () => {
 
               <button
                 onClick={() => navigate("/checkout")}
-                className="btn-primary sticky bottom-0 w-full justify-center text-center"
+                className="btn-primary hidden w-full justify-center text-center lg:flex"
               >
                 Proceed to Checkout
               </button>
@@ -100,6 +103,30 @@ const Cart = () => {
           </div>
         )}
       </div>
+
+      {cart.length > 0 ? (
+        <div className="fixed inset-x-0 bottom-[5.6rem] z-40 px-4 lg:hidden">
+          <div className="mx-auto flex max-w-md items-center gap-3 rounded-[1.8rem] border border-white/70 bg-white/95 p-3 shadow-[0_20px_40px_rgba(15,23,42,0.14)] backdrop-blur dark:border-gray-800 dark:bg-gray-900/95">
+            <div className="min-w-0 flex-1 rounded-2xl bg-gray-100 px-4 py-3 dark:bg-gray-800">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                Cart total
+              </p>
+              <p className="mt-1 text-xl font-bold text-gray-900 dark:text-white">
+                Rs.{totalPrice}
+              </p>
+              <p className="truncate text-xs text-gray-500 dark:text-gray-400">
+                {cart.length} product{cart.length === 1 ? "" : "s"} ready for checkout
+              </p>
+            </div>
+            <button
+              onClick={() => navigate("/checkout")}
+              className="shrink-0 rounded-2xl bg-gradient-to-r from-pink-500 to-orange-400 px-5 py-4 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(244,114,182,0.24)]"
+            >
+              Checkout
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

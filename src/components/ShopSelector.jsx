@@ -1,24 +1,30 @@
 import { useNavigate } from "react-router-dom";
+import { shopCatalog } from "../data/shops";
 
 export default function ShopSelector() {
   const navigate = useNavigate();
 
-  const shops = [
-    { name: "Mia&More", image: "/images/mia.png", path: "/shop/mia" },
-    { name: "Monginis", image: "/images/monginis.png", path: "/shop/monginis" },
-  ];
-
   return (
-    <div className="flex flex-col md:flex-row gap-6 justify-center">
-      {shops.map((shop) => (
+    <div className="flex flex-col justify-center gap-6 md:flex-row">
+      {shopCatalog.map((shop) => (
         <div
-          key={shop.name}
-          className="bg-white rounded-2xl shadow-xl p-4 cursor-pointer hover:scale-105 transition"
-          onClick={() => navigate(shop.path)}
+          key={shop.id}
+          className="cursor-pointer rounded-2xl bg-white p-4 shadow-xl transition hover:scale-105"
+          onClick={() => navigate(`/shop/${shop.id}`)}
         >
-          <img src={shop.image} alt={shop.name} className="h-32 w-32 object-cover mx-auto" />
-          <h3 className="text-center font-semibold mt-3">{shop.name}</h3>
-          <button className="mt-2 bg-red-500 text-white px-4 py-2 rounded-full block mx-auto">Order Now</button>
+          <img
+            src={shop.image}
+            alt={shop.name}
+            className="mx-auto h-32 w-32 object-cover"
+          />
+          <h3 className="mt-3 text-center font-semibold">{shop.name}</h3>
+          <p className="mt-1 text-center text-xs text-gray-500">{shop.localName}</p>
+          <button
+            type="button"
+            className="mx-auto mt-2 block rounded-full bg-red-500 px-4 py-2 text-white"
+          >
+            Order Now
+          </button>
         </div>
       ))}
     </div>

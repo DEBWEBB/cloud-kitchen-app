@@ -12,7 +12,7 @@ export default function MobileBottomNav() {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 items-center justify-between rounded-[28px] border border-gray-200 bg-white/90 px-3 py-2 shadow-float backdrop-blur md:hidden dark:border-gray-800 dark:bg-gray-900/90">
+    <nav className="fixed bottom-3 left-1/2 z-40 flex w-[calc(100%-1.25rem)] max-w-md -translate-x-1/2 items-center justify-between rounded-[28px] border border-gray-200/90 bg-white/92 px-3 py-2 shadow-float backdrop-blur md:hidden dark:border-gray-800 dark:bg-gray-900/92">
       {ITEMS.map((item) => {
         const isActive =
           location.pathname === item.to ||
@@ -25,7 +25,7 @@ export default function MobileBottomNav() {
             to={item.to}
             className={`flex min-w-[68px] flex-col items-center gap-1 rounded-2xl px-3 py-2 text-xs font-medium transition ${
               isActive
-                ? "bg-gradient-to-r from-pink-500 to-orange-400 text-white shadow"
+                ? "bg-gradient-to-r from-pink-500 to-orange-400 text-white shadow-[0_10px_22px_rgba(244,114,182,0.28)]"
                 : "text-gray-500 dark:text-gray-400"
             }`}
           >
