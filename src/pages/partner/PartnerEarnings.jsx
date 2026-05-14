@@ -330,12 +330,12 @@ export default function PartnerEarnings() {
   );
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.14),_transparent_26%),radial-gradient(circle_at_top_right,_rgba(251,146,60,0.14),_transparent_24%),linear-gradient(to_bottom,_#111827,_#020617_42%)] pb-16 pt-20 text-white">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.14),_transparent_26%),radial-gradient(circle_at_top_right,_rgba(251,146,60,0.14),_transparent_24%),linear-gradient(to_bottom,_#111827,_#020617_42%)] pb-28 pt-20 text-white">
       <div className="page-container space-y-6">
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-[34px] border border-white/10 bg-white/5 p-6 shadow-[0_28px_90px_-50px_rgba(15,23,42,0.9)] backdrop-blur md:p-8"
+          className="relative overflow-hidden rounded-[30px] border border-white/10 bg-white/5 p-5 shadow-[0_28px_90px_-50px_rgba(15,23,42,0.9)] backdrop-blur md:p-8"
         >
           <div className="pointer-events-none absolute -left-16 top-0 h-48 w-48 rounded-full bg-pink-500/20 blur-3xl" />
           <div className="pointer-events-none absolute right-0 top-0 h-56 w-56 rounded-full bg-orange-400/20 blur-3xl" />
@@ -346,7 +346,7 @@ export default function PartnerEarnings() {
                 <Sparkles size={14} />
                 Partner Performance Center
               </div>
-              <h1 className="text-4xl font-black tracking-tight md:text-5xl">
+              <h1 className="text-3xl font-black leading-[1.05] tracking-tight sm:text-4xl md:text-5xl">
                 Earnings, delivery history, and trend intelligence.
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
@@ -356,7 +356,7 @@ export default function PartnerEarnings() {
               </p>
             </div>
 
-            <div className="grid min-w-full gap-3 md:grid-cols-2 xl:min-w-[360px] xl:max-w-[380px]">
+            <div className="grid min-w-full gap-3 sm:grid-cols-2 xl:min-w-[360px] xl:max-w-[380px]">
               <InsightPill
                 icon={CalendarRange}
                 label="Today"
@@ -381,7 +381,7 @@ export default function PartnerEarnings() {
           </div>
         </motion.section>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
             title="Total Earnings"
             value={analytics.totalEarnings}
@@ -427,7 +427,7 @@ export default function PartnerEarnings() {
               subtitle="Track what you earned per day from your most recent completed deliveries."
               icon={Coins}
             >
-              <div className="h-[320px]">
+              <div className="h-[260px] sm:h-[320px]">
                 {analytics.dailySeries.length ? (
                   <Bar data={earningsChartData} options={earningsChartOptions} />
                 ) : (
@@ -466,7 +466,7 @@ export default function PartnerEarnings() {
                           </p>
                         </div>
 
-                        <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                           <DataChip label="Partner share" value={formatCurrency(order.partnerShare || 0)} />
                           <DataChip label="Order total" value={formatCurrency(order.total || 0)} />
                           <DataChip
@@ -494,7 +494,7 @@ export default function PartnerEarnings() {
               subtitle="See which kitchen locations are driving most of your earnings."
               icon={Store}
             >
-              <div className="h-[320px]">
+              <div className="h-[260px] sm:h-[320px]">
                 {analytics.storeSeries.length ? (
                   <Doughnut data={storeBreakdownData} options={storeBreakdownOptions} />
                 ) : (
@@ -527,7 +527,7 @@ export default function PartnerEarnings() {
                   label="Best day so far"
                   value={
                     analytics.bestDay
-                      ? `${analytics.bestDay.label} · ${formatCurrency(analytics.bestDay.earnings)}`
+                      ? `${analytics.bestDay.label} • ${formatCurrency(analytics.bestDay.earnings)}`
                       : "Waiting for history"
                   }
                   note={
@@ -558,7 +558,7 @@ export default function PartnerEarnings() {
                           analytics.latestOrder.deliveredAt ||
                             analytics.latestOrder.confirmedAt ||
                             analytics.latestOrder.createdAt
-                        )} · ${formatCurrency(analytics.latestOrder.partnerShare || 0)}`
+                        )} • ${formatCurrency(analytics.latestOrder.partnerShare || 0)}`
                       : "Latest delivery reference will appear here"
                   }
                 />
@@ -584,7 +584,7 @@ function MetricCard({ title, value, formatter, accent, icon: Icon, detail }) {
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
               {title}
             </p>
-            <div className="mt-4 text-4xl font-black text-white">
+            <div className="mt-4 text-3xl font-black text-white sm:text-4xl">
               <CountUp
                 end={Number(value || 0)}
                 duration={1.6}
@@ -616,7 +616,7 @@ function PanelCard({ title, subtitle, icon: Icon, children }) {
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
             {title}
           </p>
-          <h2 className="mt-2 text-2xl font-bold text-white">{title}</h2>
+          <h2 className="mt-2 text-xl font-bold text-white sm:text-2xl">{title}</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{subtitle}</p>
         </div>
         <div className="rounded-[22px] bg-white/8 p-3 text-pink-300">
@@ -630,12 +630,12 @@ function PanelCard({ title, subtitle, icon: Icon, children }) {
 
 function InsightPill({ icon: Icon, label, value }) {
   return (
-    <div className="rounded-[24px] border border-white/10 bg-slate-950/45 px-4 py-4">
+    <div className="rounded-[22px] border border-white/10 bg-slate-950/45 px-4 py-4">
       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
         <Icon size={14} />
         {label}
       </div>
-      <p className="mt-3 text-lg font-bold text-white">{value}</p>
+      <p className="mt-3 text-base font-bold leading-6 text-white sm:text-lg">{value}</p>
     </div>
   );
 }

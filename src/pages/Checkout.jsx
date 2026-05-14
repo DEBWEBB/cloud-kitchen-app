@@ -497,9 +497,9 @@ export default function Checkout() {
   };
 
   return (
-    <div className="min-h-screen bg-white px-6 pb-32 pt-20 text-black dark:bg-gray-900 dark:text-white md:pb-10">
+    <div className="min-h-screen bg-white px-4 pb-32 pt-20 text-black dark:bg-gray-900 dark:text-white sm:px-6 md:pb-10">
       <div className="mx-auto max-w-5xl">
-        <h1 className="mb-2 text-3xl font-bold">Checkout</h1>
+        <h1 className="mb-2 text-2xl font-bold sm:text-3xl">Checkout</h1>
         <p className="mb-8 text-sm text-gray-500 dark:text-gray-400">
           Review your delivery details, confirm your map pin, and place your order.
         </p>
@@ -548,7 +548,7 @@ export default function Checkout() {
                 key={`${form.location?.lat || selectedStore.lat}-${form.location?.lng || selectedStore.lng}`}
                 center={form.location || selectedStore}
                 zoom={15}
-                style={{ height: "320px", borderRadius: "18px" }}
+                style={{ height: "300px", borderRadius: "18px" }}
               >
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <Marker position={form.location || selectedStore} />

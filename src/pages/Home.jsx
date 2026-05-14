@@ -40,8 +40,8 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-orange-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 transition-colors duration-300">
-      <section className="relative overflow-hidden px-4 pb-10 pt-12">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-orange-50 transition-colors duration-300 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900">
+      <section className="relative overflow-hidden px-4 pb-8 pt-8 sm:pb-10 sm:pt-12">
         <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-pink-200 opacity-40 blur-3xl dark:bg-pink-900/20" />
         <div className="pointer-events-none absolute -left-20 top-40 h-60 w-60 rounded-full bg-orange-200 opacity-30 blur-3xl dark:bg-orange-900/20" />
 
@@ -56,7 +56,7 @@ export default function Home() {
           </motion.p>
 
           <motion.h1
-            className="text-4xl font-extrabold leading-tight text-gray-900 dark:text-white md:text-6xl"
+            className="text-3xl font-extrabold leading-tight text-gray-900 dark:text-white sm:text-4xl md:text-6xl"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
@@ -69,7 +69,7 @@ export default function Home() {
           </motion.h1>
 
           <motion.p
-            className="mx-auto mt-4 max-w-xl text-lg italic text-gray-500 dark:text-gray-400"
+            className="mx-auto mt-4 max-w-xl text-base italic text-gray-500 dark:text-gray-400 sm:text-lg"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
@@ -114,7 +114,7 @@ export default function Home() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6 }}
         >
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg text-gray-400">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-400 sm:text-base">
             Search
           </span>
           <input
@@ -122,13 +122,13 @@ export default function Home() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search local shops, Bengali names, or Bethuadahari address"
-            className="w-full rounded-2xl border border-gray-200 bg-white py-3 pl-20 pr-4 text-sm text-gray-800 shadow-md transition placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            className="w-full rounded-2xl border border-gray-200 bg-white py-3 pl-[4.7rem] pr-16 text-sm text-gray-800 shadow-md transition placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:pl-20"
           />
           {search ? (
             <button
               type="button"
               onClick={() => setSearch("")}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-gray-600"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-400 transition hover:text-gray-600 sm:text-sm"
             >
               Clear
             </button>
@@ -164,7 +164,7 @@ export default function Home() {
               </button>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               {filtered.map((store, index) => (
                 <StoreCard
                   key={store.id}
@@ -196,7 +196,7 @@ function StoreCard({ store, index, hovered, onHover, onLeave, onClick }) {
       className="group cursor-pointer overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-md transition-all duration-300 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800"
       whileHover={{ y: -4 }}
     >
-      <div className="relative h-52 overflow-hidden">
+      <div className="relative h-48 overflow-hidden sm:h-52">
         <img
           src={store.image}
           alt={store.name}
@@ -216,7 +216,7 @@ function StoreCard({ store, index, hovered, onHover, onLeave, onClick }) {
         </span>
       </div>
 
-      <div className="p-5">
+      <div className="p-4 sm:p-5">
         <div className="mb-1 flex items-start justify-between gap-3">
           <div>
             <h3 className="text-xl font-bold text-gray-900 transition-colors group-hover:text-pink-600 dark:text-white dark:group-hover:text-pink-400">
@@ -259,12 +259,12 @@ function StoreCard({ store, index, hovered, onHover, onLeave, onClick }) {
           ))}
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-xs text-gray-400">{store.minOrder}</span>
           <motion.button
             type="button"
             whileTap={{ scale: 0.95 }}
-            className="rounded-xl bg-gradient-to-r from-pink-500 to-orange-400 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-pink-600 hover:to-orange-500"
+            className="w-full rounded-xl bg-gradient-to-r from-pink-500 to-orange-400 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-pink-600 hover:to-orange-500 sm:w-auto"
           >
             {hovered ? "View Menu" : "Open Local Shop"}
           </motion.button>

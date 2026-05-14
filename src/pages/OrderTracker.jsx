@@ -151,7 +151,7 @@ export function OrderTrackerPanel({
 
   if (loading) {
     return (
-      <div className={embedded ? "" : "page-container pt-28"}>
+      <div className={embedded ? "" : "page-container pt-20 md:pt-24"}>
         <div className="card overflow-hidden p-8">
           <div className="space-y-5 animate-pulse">
             <div className="h-6 w-48 rounded-full bg-gray-200 dark:bg-gray-800" />
@@ -166,7 +166,7 @@ export function OrderTrackerPanel({
   if (error || !order) {
     return (
       <motion.div
-        className={embedded ? "" : "page-container pt-28"}
+        className={embedded ? "" : "page-container pt-20 md:pt-24"}
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
       >
@@ -186,23 +186,23 @@ export function OrderTrackerPanel({
       className={`text-gray-900 dark:text-white ${
         embedded
           ? ""
-          : "min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.14),_transparent_26%),radial-gradient(circle_at_top_right,_rgba(251,146,60,0.12),_transparent_24%),linear-gradient(to_bottom,_#fff7f5,_#f8fafc_24%,_#f8fafc)] pt-24 dark:bg-gray-950"
+          : "min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.14),_transparent_26%),radial-gradient(circle_at_top_right,_rgba(251,146,60,0.12),_transparent_24%),linear-gradient(to_bottom,_#fff7f5,_#f8fafc_24%,_#f8fafc)] pt-20 dark:bg-gray-950 md:pt-24"
       }`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      <div className={`${embedded ? "space-y-6" : "page-container space-y-6 pb-24"}`}>
-        <section className="relative overflow-hidden rounded-[32px] border border-white/70 bg-white/80 p-6 shadow-[0_28px_80px_-48px_rgba(15,23,42,0.5)] backdrop-blur md:p-8 dark:border-white/10 dark:bg-gray-900/75">
+      <div className={`${embedded ? "space-y-5" : "page-container space-y-5 pb-24"}`}>
+        <section className="relative overflow-hidden rounded-[32px] border border-white/70 bg-white/80 p-5 shadow-[0_28px_80px_-48px_rgba(15,23,42,0.5)] backdrop-blur md:p-8 dark:border-white/10 dark:bg-gray-900/75">
           <div className="pointer-events-none absolute -left-10 top-0 h-56 w-56 rounded-full bg-pink-400/20 blur-3xl" />
           <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 rounded-full bg-orange-300/20 blur-3xl" />
 
-          <div className="relative flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+          <div className="relative flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
             <div className="max-w-3xl">
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-pink-200 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-pink-600 dark:border-pink-500/20 dark:bg-gray-900/70 dark:text-pink-300">
                 <Sparkles size={14} />
                 Live Delivery Tracker
               </div>
-              <h1 className="text-4xl font-black tracking-tight text-gray-950 md:text-5xl dark:text-white">
+              <h1 className="text-3xl font-black tracking-tight text-gray-950 sm:text-4xl md:text-5xl dark:text-white">
                 Order #{order.id.slice(-6).toUpperCase()}
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-600 dark:text-gray-300 md:text-base">
@@ -226,7 +226,7 @@ export function OrderTrackerPanel({
               </div>
             </div>
 
-            <div className="grid min-w-full gap-3 md:grid-cols-2 xl:min-w-[360px] xl:max-w-[380px]">
+            <div className="grid min-w-full gap-3 sm:grid-cols-2 xl:min-w-[360px] xl:max-w-[380px]">
               <TrackerStat
                 icon={PackageCheck}
                 label="Status"
@@ -289,9 +289,9 @@ export function OrderTrackerPanel({
           ) : null}
         </section>
 
-        <section className="grid gap-6 xl:grid-cols-[0.88fr_1.12fr]">
-          <div className="space-y-6">
-            <div className="card rounded-[30px] border-white/60 bg-white/75 p-6 backdrop-blur dark:border-white/10 dark:bg-gray-900/75">
+        <section className="grid gap-5 xl:grid-cols-[0.88fr_1.12fr]">
+          <div className="space-y-5">
+            <div className="card rounded-[30px] border-white/60 bg-white/75 p-5 backdrop-blur dark:border-white/10 dark:bg-gray-900/75 sm:p-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
@@ -342,7 +342,7 @@ export function OrderTrackerPanel({
               </div>
             </div>
 
-            <div className="card rounded-[30px] border-white/60 bg-white/75 p-6 backdrop-blur dark:border-white/10 dark:bg-gray-900/75">
+            <div className="card rounded-[30px] border-white/60 bg-white/75 p-5 backdrop-blur dark:border-white/10 dark:bg-gray-900/75 sm:p-6">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
                 Delivery intelligence
               </p>
@@ -378,7 +378,7 @@ export function OrderTrackerPanel({
               </div>
 
               <div className="mt-4 rounded-[26px] bg-gray-50 p-4 dark:bg-gray-800/70">
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">
                       Confirmation code
@@ -387,7 +387,7 @@ export function OrderTrackerPanel({
                       {secretCode || "PENDING"}
                     </p>
                   </div>
-                  <button onClick={copySecretCode} className="btn-ghost">
+                  <button onClick={copySecretCode} className="btn-ghost w-full justify-center sm:w-auto">
                     <Copy size={16} className="mr-2 inline-flex" />
                     Copy
                   </button>
@@ -404,7 +404,7 @@ export function OrderTrackerPanel({
                 order.pickupSelfieUrl ||
                 order.deliveryProofUrl ||
                 order.deliverySelfieUrl) && (
-                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <div className="mt-5 grid gap-4 sm:grid-cols-2">
                   {order.pickupProofUrl && (
                     <ProofCard title="Pickup proof" src={order.pickupProofUrl} />
                   )}
@@ -422,10 +422,10 @@ export function OrderTrackerPanel({
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div className="card overflow-hidden rounded-[30px] border-white/60 bg-white/80 backdrop-blur dark:border-white/10 dark:bg-gray-900/75">
-              <div className="border-b border-gray-100 px-6 py-5 dark:border-gray-800">
-                <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="border-b border-gray-100 px-5 py-5 dark:border-gray-800 sm:px-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
                       Route map
@@ -440,7 +440,7 @@ export function OrderTrackerPanel({
                 </div>
               </div>
 
-              <div className="h-[460px] bg-gray-100 dark:bg-gray-800">
+              <div className="h-[340px] bg-gray-100 sm:h-[420px] dark:bg-gray-800">
                 <DeliveryGoogleMap
                   center={mapCenter}
                   customerLocation={deliveryLocation}
@@ -452,8 +452,8 @@ export function OrderTrackerPanel({
               </div>
             </div>
 
-            <div className="card rounded-[30px] border-white/60 bg-white/75 p-6 backdrop-blur dark:border-white/10 dark:bg-gray-900/75">
-              <div className="flex items-center justify-between gap-3">
+            <div className="card rounded-[30px] border-white/60 bg-white/75 p-5 backdrop-blur dark:border-white/10 dark:bg-gray-900/75 sm:p-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
                     Address and basket
@@ -482,7 +482,7 @@ export function OrderTrackerPanel({
                 {(order.items || []).map((item, index) => (
                   <div
                     key={`${item.name}-${index}`}
-                    className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-gray-950/60"
+                    className="flex flex-col gap-2 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-gray-800 dark:bg-gray-950/60"
                   >
                     <div>
                       <p className="font-semibold text-gray-900 dark:text-white">{item.name}</p>
@@ -515,7 +515,7 @@ function TrackerStat({ icon: Icon, label, value }) {
         <Icon size={16} />
         {label}
       </div>
-      <p className="mt-3 text-lg font-bold text-gray-950 dark:text-white">{value}</p>
+      <p className="mt-3 text-base font-bold leading-7 text-gray-950 sm:text-lg dark:text-white">{value}</p>
     </div>
   );
 }
@@ -534,7 +534,7 @@ function InfoTile({ label, value }) {
 function ProofCard({ title, src }) {
   return (
     <div className="overflow-hidden rounded-[24px] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950/60">
-      <img src={src} alt={title} className="h-48 w-full object-cover" />
+      <img src={src} alt={title} className="h-40 w-full object-cover sm:h-48" />
       <div className="p-4">
         <p className="text-sm font-semibold text-gray-900 dark:text-white">{title}</p>
       </div>

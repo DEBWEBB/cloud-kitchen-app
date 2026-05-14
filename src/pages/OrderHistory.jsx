@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { collection, onSnapshot, orderBy, query, where } from "firebase/firestore";
 import { AnimatePresence, motion } from "framer-motion";
 import toast from "react-hot-toast";
-import jsPDF from "jspdf";
 import {
   CalendarClock,
   CheckCircle2,
@@ -29,10 +28,13 @@ import hungryLogo from "../assets/HungryBOX-logo.jpg";
 import { db } from "../firebase/firebaseConfig";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
-import { OrderTrackerPanel } from "./OrderTracker";
 import CustomerDeliveryLiveCard from "../components/CustomerDeliveryLiveCard";
 import { revealOrderSecurityCode } from "../utils/orderSecurity";
 import { getShopById } from "../data/shops";
+
+const LazyOrderTrackerPanel = lazy(() =>
+  import("./OrderTracker").then((module) => ({ default: module.OrderTrackerPanel }))
+);
 
 const ORDER_STAGES = ["pending", "picked", "on the way", "delivered"];
 
@@ -395,6 +397,7 @@ export default function OrderHistory() {
   const downloadInvoice = async (order) => {
     try {
       const secureCode = await ensureSecretCodeForOrder(order);
+      const [{ default: jsPDF }] = await Promise.all([import("jspdf")]);
       const pdf = new jsPDF({ unit: "mm", format: "a4" });
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
@@ -825,7 +828,7 @@ export default function OrderHistory() {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.16),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(251,146,60,0.12),_transparent_26%),linear-gradient(to_bottom,_#fff7f5,_#f8fafc_22%,_#f8fafc)] pt-24 text-gray-900 dark:bg-gray-950 dark:text-white">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.16),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(251,146,60,0.12),_transparent_26%),linear-gradient(to_bottom,_#fff7f5,_#f8fafc_22%,_#f8fafc)] pb-28 pt-20 text-gray-900 dark:bg-gray-950 dark:text-white md:pt-24">
       <div className="page-container pb-24">
         <motion.section
           initial={{ opacity: 0, y: 18 }}
@@ -835,13 +838,13 @@ export default function OrderHistory() {
           <div className="pointer-events-none absolute -left-20 top-0 h-56 w-56 rounded-full bg-pink-400/20 blur-3xl" />
           <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 rounded-full bg-orange-300/25 blur-3xl" />
 
-          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div className="relative flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-3xl">
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-pink-200 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-pink-600 dark:border-pink-500/20 dark:bg-gray-900/70 dark:text-pink-300">
                 <Sparkles size={14} />
                 Orders Command Center
               </div>
-              <h1 className="max-w-2xl text-4xl font-black tracking-tight text-gray-950 md:text-5xl dark:text-white">
+              <h1 className="max-w-2xl text-3xl font-black tracking-tight text-gray-950 sm:text-4xl md:text-5xl dark:text-white">
                 Your orders now feel like a premium delivery dashboard.
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-600 dark:text-gray-300 md:text-base">
@@ -910,7 +913,7 @@ export default function OrderHistory() {
           </div>
         </motion.section>
 
-        <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <StatTile
             icon={Package2}
             title="Total Orders"
@@ -973,7 +976,7 @@ export default function OrderHistory() {
                 <select
                   value={sortBy}
                   onChange={(event) => setSortBy(event.target.value)}
-                  className="input-style min-w-[170px] rounded-2xl border-white/80 bg-white/80 dark:border-white/10 dark:bg-gray-950/60"
+                  className="input-style w-full rounded-2xl border-white/80 bg-white/80 lg:min-w-[170px] dark:border-white/10 dark:bg-gray-950/60"
                 >
                   <option value="latest">Newest first</option>
                   <option value="oldest">Oldest first</option>
@@ -1152,11 +1155,22 @@ export default function OrderHistory() {
                 onClick={(event) => event.stopPropagation()}
                 className="max-h-[92vh] w-full max-w-6xl overflow-y-auto rounded-[34px] border border-white/15 bg-white/90 p-4 shadow-2xl dark:bg-gray-950/92 md:p-6"
               >
-                <OrderTrackerPanel
-                  orderId={trackedOrderId}
-                  embedded
-                  onClose={closeTrackedOrder}
-                />
+                  <Suspense
+                    fallback={
+                      <div className="flex min-h-[40vh] items-center justify-center">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="h-10 w-10 animate-spin rounded-full border-4 border-pink-200 border-t-pink-500" />
+                          <p className="text-sm text-gray-400">Loading tracker...</p>
+                        </div>
+                      </div>
+                    }
+                  >
+                    <LazyOrderTrackerPanel
+                      orderId={trackedOrderId}
+                      embedded
+                      onClose={closeTrackedOrder}
+                    />
+                  </Suspense>
               </motion.div>
             </div>
           </motion.div>
@@ -1286,11 +1300,11 @@ function OrderCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
       whileHover={{ y: -4 }}
-      className="relative overflow-hidden rounded-[30px] border border-white/70 bg-white/80 p-5 shadow-[0_28px_80px_-50px_rgba(15,23,42,0.45)] backdrop-blur md:p-6 dark:border-white/10 dark:bg-gray-900/75"
+      className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/80 p-4 shadow-[0_28px_80px_-50px_rgba(15,23,42,0.45)] backdrop-blur sm:p-5 md:p-6 dark:border-white/10 dark:bg-gray-900/75"
     >
       <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${config.glow}`} />
 
-      <div className="relative flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+      <div className="relative flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
         <div className="flex-1">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="flex items-start gap-4">
@@ -1320,7 +1334,7 @@ function OrderCard({
                     </motion.span>
                   ) : null}
                 </div>
-                <h3 className="mt-3 text-2xl font-black text-gray-950 dark:text-white">
+                <h3 className="mt-3 text-xl font-black text-gray-950 sm:text-2xl dark:text-white">
                   Order #{order.id.slice(-6).toUpperCase()}
                 </h3>
                 <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
@@ -1517,7 +1531,7 @@ function OrderDetailModal({
           exit={{ opacity: 0, y: 30, scale: 0.96 }}
           transition={{ type: "spring", stiffness: 220, damping: 22 }}
           onClick={(event) => event.stopPropagation()}
-          className="relative w-full max-w-4xl overflow-hidden rounded-[32px] border border-white/15 bg-white p-6 shadow-2xl dark:bg-gray-900 md:p-8"
+          className="relative w-full max-w-4xl overflow-hidden rounded-[28px] border border-white/15 bg-white p-4 shadow-2xl dark:bg-gray-900 sm:p-6 md:p-8"
         >
           <div className={`absolute inset-0 bg-gradient-to-br ${config.glow}`} />
 
@@ -1525,7 +1539,7 @@ function OrderDetailModal({
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
                 <StatusChip status={order.status} />
-                <h2 className="mt-4 text-3xl font-black text-gray-950 dark:text-white">
+                <h2 className="mt-4 text-2xl font-black text-gray-950 sm:text-3xl dark:text-white">
                   Order #{order.id.slice(-6).toUpperCase()}
                 </h2>
                 <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
@@ -1542,7 +1556,7 @@ function OrderDetailModal({
               </button>
             </div>
 
-            <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_0.85fr]">
+            <div className="mt-6 grid gap-5 xl:grid-cols-[1fr_0.85fr]">
               <div className="space-y-6">
                 <section className="rounded-[28px] bg-gray-50 p-5 dark:bg-gray-800/70">
                   <h3 className="text-lg font-bold">Item breakdown</h3>
@@ -1576,7 +1590,7 @@ function OrderDetailModal({
                       paymentStatus={paymentStatus}
                     />
                   </div>
-                  <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     <OrderMetaTile
                       label="Address"
                       value={order.address || "Saved delivery address"}
@@ -1639,7 +1653,7 @@ function OrderDetailModal({
                       <RotateCcw size={16} className="mr-2 inline-flex" />
                       Reorder This Basket
                     </button>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <button type="button" onClick={onCopy} className="btn-ghost">
                         <Clipboard size={16} className="mr-2 inline-flex" />
                         Copy ID

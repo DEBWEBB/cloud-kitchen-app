@@ -77,16 +77,18 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur dark:border-gray-800 dark:bg-gray-900/80">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="h-12 w-12 overflow-hidden rounded-2xl border border-gray-200 shadow-sm dark:border-gray-700">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:px-6">
+        <Link to="/" className="flex min-w-0 items-center gap-3">
+          <div className="h-11 w-11 shrink-0 overflow-hidden rounded-2xl border border-gray-200 shadow-sm dark:border-gray-700 md:h-12 md:w-12">
             <img src={hungryLogo} alt="HungryBox Logo" className="h-full w-full object-cover" />
           </div>
-          <div>
-            <span className="block text-lg font-bold tracking-tight text-gray-900 dark:text-white">
+          <div className="min-w-0">
+            <span className="block truncate text-base font-bold tracking-tight text-gray-900 dark:text-white sm:text-lg">
               HungryBox
             </span>
-            <span className="muted hidden md:block">Fresh delivery from your cloud kitchen</span>
+            <span className="hidden text-xs text-gray-500 dark:text-gray-400 sm:block md:text-sm">
+              Fresh delivery from your cloud kitchen
+            </span>
           </div>
         </Link>
 
@@ -115,7 +117,7 @@ const Header = () => {
 
         <button
           type="button"
-          className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-gray-200/80 bg-white/80 text-2xl text-gray-700 shadow-sm transition hover:bg-white dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 md:hidden"
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-gray-200/80 bg-white/80 text-2xl text-gray-700 shadow-sm transition hover:bg-white dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 md:hidden"
           onClick={() => setMenuOpen((v) => !v)}
           aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={menuOpen}
@@ -138,7 +140,7 @@ const Header = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.98 }}
               transition={{ type: "spring", stiffness: 260, damping: 24 }}
-              className="mx-4 mt-24 rounded-[30px] border border-white/60 bg-white/95 p-4 shadow-2xl dark:border-white/10 dark:bg-gray-900/95"
+              className="mx-4 mt-20 max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-[30px] border border-white/60 bg-white/95 p-4 shadow-2xl dark:border-white/10 dark:bg-gray-900/95"
             >
               <div className="mb-4 flex items-center justify-between">
                 <div>
@@ -167,13 +169,13 @@ const Header = () => {
               </button>
 
               {!user || isAnonymous ? (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 mobile-safe-bottom">
                   <Link to="/login" className={navItemClasses("/login")}>Login</Link>
                   <Link to="/signup" className={navItemClasses("/signup")}>Signup</Link>
                   <Link to="/delivery-auth" className={navItemClasses("/delivery-auth")}>Partner Login</Link>
                 </div>
               ) : (
-                <div className="flex flex-col gap-2">{navLinks}</div>
+                <div className="flex flex-col gap-2 mobile-safe-bottom">{navLinks}</div>
               )}
             </motion.div>
           </motion.div>

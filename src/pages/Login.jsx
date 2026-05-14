@@ -1,150 +1,165 @@
 import React, { useState } from "react";
 import {
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
   GoogleAuthProvider,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
   signInWithPopup,
 } from "firebase/auth";
-import { auth } from "../firebase/firebaseConfig";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { ArrowRight, KeyRound, Mail, SmilePlus } from "lucide-react";
+import toast from "react-hot-toast";
 import { FcGoogle } from "react-icons/fc";
+import { auth } from "../firebase/firebaseConfig";
+import AuthExperienceShell from "../components/AuthExperienceShell";
+
+const inputClassName =
+  "w-full rounded-[22px] border border-slate-200 bg-white/90 px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-pink-400 focus:ring-2 focus:ring-pink-400/25 dark:border-slate-700 dark:bg-slate-900/80 dark:text-white dark:placeholder:text-slate-500";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    setError("");
+    setSubmitting(true);
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      toast.success("Welcome back to HungryBox.");
       navigate("/profile");
-    } catch (err) {
-      setError("Login failed. Please check your credentials.");
+    } catch (loginError) {
+      setError("Login failed. Please check your email and password.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
+    setError("");
+    setSubmitting(true);
     try {
       await signInWithPopup(auth, provider);
+      toast.success("Signed in with Google.");
       navigate("/profile");
-    } catch (err) {
-      console.error(err);
-      setError("Google sign-in failed");
+    } catch (loginError) {
+      console.error(loginError);
+      setError("Google sign-in failed. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleForgotPassword = async () => {
-    const userEmail = prompt("Please enter your registered email:");
+    const userEmail = window.prompt("Enter your registered email to receive a reset link:");
     if (!userEmail) return;
 
     try {
       await sendPasswordResetEmail(auth, userEmail);
-      alert("Password reset email sent! 📬");
-    } catch (err) {
-      alert("Error: " + err.message);
+      toast.success("Password reset email sent.");
+    } catch (resetError) {
+      toast.error(resetError.message || "Could not send reset email.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-800 via-pink-600 to-red-500 flex items-center justify-center relative overflow-hidden">
-      {/* 🫧 Animated Blobs */}
-      <motion.div
-        className="absolute w-80 h-80 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"
-        initial={{ x: -200, y: -200 }}
-        animate={{ x: 0, y: 0 }}
-        transition={{ duration: 15, repeat: Infinity, repeatType: "mirror" }}
-      />
-      <motion.div
-        className="absolute w-80 h-80 bg-yellow-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"
-        initial={{ x: 200, y: 200 }}
-        animate={{ x: 0, y: 0 }}
-        transition={{ duration: 18, repeat: Infinity, repeatType: "mirror" }}
-      />
-      <motion.div
-        className="absolute w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"
-        initial={{ x: -100, y: 300 }}
-        animate={{ x: 0, y: 0 }}
-        transition={{ duration: 20, repeat: Infinity, repeatType: "mirror" }}
-      />
-
-      {/* 🧊 Login Card */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="backdrop-blur-xl bg-white/30 dark:bg-gray-900/30 shadow-2xl border border-white/20 p-8 rounded-2xl max-w-md w-full z-10"
-      >
-        <h2 className="text-4xl font-extrabold text-center text-white mb-6 drop-shadow">
-          🔐 Login to HungryBox
-        </h2>
-
-        <form onSubmit={handleLogin} className="space-y-5">
+    <AuthExperienceShell
+      eyebrow="Welcome Back"
+      title="Sign in and pick up where your last sweet order left off."
+      subtitle="Check live orders, revisit your favourites, and get back to checkout in just a moment."
+      promptTitle="A warmer way back into your food and cake routine."
+      promptText="We’ve made the sign-in moment feel lighter, kinder, and closer to the joyful HungryBox vibe. Step back in and let us carry the order flow for you."
+    >
+      <form onSubmit={handleLogin} className="space-y-4">
+        <label className="block">
+          <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <Mail size={16} />
+            Email address
+          </span>
           <input
             type="email"
             autoComplete="email"
-            placeholder="Enter email"
-            className="w-full px-5 py-3 rounded-xl bg-white/60 dark:bg-gray-700 border border-white/30 dark:border-gray-600 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 focus:ring-2 ring-pink-500 outline-none transition-all duration-300"
+            placeholder="name@example.com"
+            className={inputClassName}
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(event) => setEmail(event.target.value)}
             required
           />
+        </label>
+
+        <label className="block">
+          <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <KeyRound size={16} />
+            Password
+          </span>
           <input
             type="password"
             autoComplete="current-password"
-            placeholder="Enter password"
-            className="w-full px-5 py-3 rounded-xl bg-white/60 dark:bg-gray-700 border border-white/30 dark:border-gray-600 text-black dark:text-white placeholder-gray-600 dark:placeholder-gray-400 focus:ring-2 ring-pink-500 outline-none transition-all duration-300"
+            placeholder="Enter your password"
+            className={inputClassName}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(event) => setPassword(event.target.value)}
             required
           />
+        </label>
 
-          {error && (
-            <p className="text-red-300 text-sm text-center">{error}</p>
-          )}
+        {error ? (
+          <div className="rounded-[22px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300">
+            {error}
+          </div>
+        ) : null}
 
-          {/* 🔘 Login Button with glow */}
-          <motion.button
-            type="submit"
-            whileHover={{ scale: 1.05, boxShadow: "0 0 15px #ec4899" }}
-            className="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-5 rounded-xl transition-all duration-300 shadow-lg"
-          >
-            Login
-          </motion.button>
+        <motion.button
+          type="submit"
+          whileTap={{ scale: 0.98 }}
+          disabled={submitting}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-[24px] bg-gradient-to-r from-pink-500 to-orange-400 px-5 py-4 text-sm font-semibold text-white shadow-[0_18px_36px_-20px_rgba(244,114,182,0.9)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {submitting ? "Signing you in..." : "Login to HungryBox"}
+          <ArrowRight size={16} />
+        </motion.button>
 
-          {/* 🌐 Google Login Button */}
-          <motion.button
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          disabled={submitting}
+          className="inline-flex w-full items-center justify-center gap-3 rounded-[24px] border border-slate-200 bg-white px-5 py-4 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+        >
+          <FcGoogle size={22} />
+          Continue with Google
+        </button>
+
+        <div className="flex flex-col gap-3 pt-2 text-sm sm:flex-row sm:items-center sm:justify-between">
+          <button
             type="button"
-            onClick={handleGoogleLogin}
-            whileHover={{ scale: 1.05 }}
-            className="w-full flex items-center justify-center gap-2 bg-white text-gray-800 font-semibold py-3 px-5 rounded-xl border border-gray-300 hover:bg-gray-100 transition-all duration-300"
-          >
-            <FcGoogle size={24} /> Sign in with Google
-          </motion.button>
-
-          {/* 🔁 Forgot password */}
-          <p
             onClick={handleForgotPassword}
-            className="text-sm text-white text-center mt-3 underline cursor-pointer hover:text-yellow-200 transition duration-300"
+            className="text-left font-medium text-pink-600 transition hover:text-pink-700 dark:text-pink-300 dark:hover:text-pink-200"
           >
-            Forgot Password?
+            Forgot password?
+          </button>
+          <p className="text-slate-500 dark:text-slate-400">
+            New here?{" "}
+            <Link to="/signup" className="font-semibold text-slate-900 underline-offset-4 hover:underline dark:text-white">
+              Create your account
+            </Link>
           </p>
+        </div>
+      </form>
 
-          {/* 🔁 Link to Signup */}
-          <p className="mt-5 text-center text-white text-sm">
-            Don’t have an account?{" "}
-            <a
-              href="/signup"
-              className="text-blue-200 hover:underline hover:text-yellow-300 transition"
-            >
-              Sign up here
-            </a>
-          </p>
-        </form>
-      </motion.div>
-    </div>
+      <div className="mt-6 rounded-[26px] border border-white/70 bg-gradient-to-r from-pink-50 to-orange-50 px-4 py-4 dark:border-white/10 dark:bg-gradient-to-r dark:from-pink-500/10 dark:to-orange-400/10">
+        <p className="inline-flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+          <SmilePlus size={16} className="text-pink-500" />
+          A little welcome from us
+        </p>
+        <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+          HungryBox is happy to have you back. Your favourite cakes, local shops, and live delivery updates are waiting right where you left them.
+        </p>
+      </div>
+    </AuthExperienceShell>
   );
 }

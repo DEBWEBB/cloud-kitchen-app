@@ -25,7 +25,7 @@ const MenuItemCard = ({ item, onAdd }) => {
           <img
             src={item.image}
             alt={item.name}
-            className="h-52 w-full object-cover transition duration-700 group-hover:scale-105"
+            className="h-48 w-full object-cover transition duration-700 group-hover:scale-105 sm:h-52"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/5 to-transparent" />
           <div className="absolute left-4 top-4 flex flex-wrap gap-2">
@@ -40,16 +40,16 @@ const MenuItemCard = ({ item, onAdd }) => {
               </span>
             ) : null}
           </div>
-          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-3">
-            <div className="max-w-[72%]">
-              <h3 className="text-xl font-black tracking-tight text-white">
+          <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="max-w-full sm:max-w-[72%]">
+              <h3 className="text-lg font-black tracking-tight text-white sm:text-xl">
                 {item.name}
               </h3>
               <p className="mt-1 text-sm text-white/80">
                 {isOutOfStock ? "Temporarily unavailable" : "Freshly prepared for local delivery"}
               </p>
             </div>
-            <div className="rounded-2xl bg-white/90 px-4 py-3 text-right shadow-lg backdrop-blur">
+            <div className="w-fit rounded-2xl bg-white/90 px-4 py-3 text-left shadow-lg backdrop-blur sm:ml-auto sm:text-right">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
                 Price
               </p>
@@ -59,8 +59,8 @@ const MenuItemCard = ({ item, onAdd }) => {
         </div>
       ) : null}
 
-      <div className="relative space-y-4 p-5">
-        <p className="min-h-[52px] text-sm leading-7 text-slate-600 dark:text-slate-300">
+      <div className="relative space-y-4 p-4 sm:p-5">
+        <p className="min-h-[48px] text-sm leading-6 text-slate-600 dark:text-slate-300 sm:min-h-[52px] sm:leading-7">
           {item.description}
         </p>
 
@@ -103,7 +103,7 @@ const MenuItemCard = ({ item, onAdd }) => {
           </div>
 
           <button
-            className={`min-h-[58px] rounded-[1.4rem] px-5 text-sm font-semibold transition ${
+            className={`min-h-[58px] w-full rounded-[1.4rem] px-5 text-sm font-semibold transition sm:min-w-[152px] sm:w-auto ${
               isOutOfStock
                 ? "cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
                 : "bg-gradient-to-r from-pink-500 via-rose-500 to-orange-400 text-white shadow-[0_16px_30px_rgba(244,114,182,0.28)] hover:translate-y-[-1px]"

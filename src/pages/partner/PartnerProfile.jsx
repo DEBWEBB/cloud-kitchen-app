@@ -170,24 +170,24 @@ export default function PartnerProfile() {
 
   return (
     <motion.div
-      className="page-container pt-24"
+      className="page-container pb-28 pt-20 md:pt-24"
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
     >
-      <div className="card mx-auto max-w-3xl overflow-hidden p-0">
-        <div className="bg-gradient-to-r from-pink-500 to-orange-400 px-6 py-7 text-white">
+      <div className="card mx-auto max-w-4xl overflow-hidden p-0">
+        <div className="bg-gradient-to-r from-pink-500 to-orange-400 px-5 py-6 text-white sm:px-6 sm:py-7">
           <span className="chip inline-flex border border-white/20 bg-white/15 text-white">
             Delivery partner
           </span>
-          <h1 className="mt-4 text-3xl font-bold">Partner Profile</h1>
-          <p className="mt-2 text-sm text-white/85">
+          <h1 className="mt-4 text-2xl font-bold sm:text-3xl">Partner Profile</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/85">
             Keep your public profile accurate and maintain selfie verification for deliveries.
           </p>
         </div>
 
-        <div className="grid gap-6 p-6 lg:grid-cols-[280px_1fr]">
-          <aside className="space-y-4 rounded-3xl bg-gray-50 p-5 dark:bg-gray-800/70">
+        <div className="grid gap-5 p-4 sm:p-6 lg:grid-cols-[290px_1fr]">
+          <aside className="space-y-4 rounded-3xl bg-gray-50 p-5 dark:bg-gray-800/70 lg:sticky lg:top-24 lg:self-start">
             <div className="flex flex-col items-center text-center">
               <motion.img
                 whileHover={{ scale: 1.03 }}
@@ -208,7 +208,7 @@ export default function PartnerProfile() {
               <p className="muted mt-1">{user?.email || "No email available"}</p>
             </div>
 
-            <div className="grid gap-3">
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
               <div className="rounded-2xl bg-white p-4 shadow-sm dark:bg-gray-900/70">
                 <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                   <ShieldCheck size={16} />
@@ -242,7 +242,7 @@ export default function PartnerProfile() {
 
             <button
               type="button"
-              className="btn-ghost flex w-full items-center justify-center gap-2"
+              className="btn-ghost flex w-full items-center justify-center gap-2 rounded-2xl"
               onClick={() => setShowCamera((current) => !current)}
             >
               <Camera size={16} />
@@ -273,7 +273,7 @@ export default function PartnerProfile() {
                   ref={webcamRef}
                   screenshotFormat="image/jpeg"
                   videoConstraints={{ facingMode: "user" }}
-                  className="h-[260px] w-full rounded-2xl border border-pink-200 object-cover dark:border-pink-900/40"
+                  className="h-[220px] w-full rounded-2xl border border-pink-200 object-cover dark:border-pink-900/40 sm:h-[260px]"
                 />
 
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">
@@ -303,7 +303,12 @@ export default function PartnerProfile() {
               </div>
             )}
 
-            <div className="grid gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <div className="rounded-2xl border border-pink-100 bg-pink-50/80 px-4 py-3 text-sm leading-6 text-pink-700 dark:border-pink-900/30 dark:bg-pink-950/20 dark:text-pink-200">
+                  Keep this profile current so customers, stores, and operations can trust the details shown during a live delivery.
+                </div>
+              </div>
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Full Name
@@ -358,7 +363,7 @@ export default function PartnerProfile() {
             <button
               type="button"
               disabled={saving}
-              className="btn-primary w-full justify-center"
+              className="btn-primary sticky bottom-4 z-10 w-full justify-center rounded-2xl shadow-[0_18px_40px_-20px_rgba(244,114,182,0.75)]"
               onClick={handleSave}
             >
               {saving ? "Saving..." : "Save Partner Profile"}

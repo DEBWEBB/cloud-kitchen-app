@@ -6,6 +6,7 @@ import { doc, setDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { auth, db } from "../firebase/firebaseConfig";
 import { uploadPartnerSecurityAsset } from "../utils/uploadPartnerSecurityAsset";
+import AuthExperienceShell from "../components/AuthExperienceShell";
 
 const DeliveryAuth = () => {
   const [isSignup, setIsSignup] = useState(false);
@@ -129,27 +130,47 @@ const DeliveryAuth = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-tr from-blue-200 via-pink-100 to-yellow-100 px-4 py-12 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800">
+    <AuthExperienceShell
+      eyebrow="Partner Portal"
+      title={isSignup ? "Start your trusted rider profile." : "Welcome back to the rider desk."}
+      subtitle={
+        isSignup
+          ? "Complete your delivery partner registration with identity details, Aadhaar verification, and mobile-ready onboarding."
+          : "Log in to manage live orders, secure shift OTP verification, proof capture, and real-time delivery tracking."
+      }
+      promptTitle="Fast delivery, secure identity, and a smooth mobile rider experience."
+      promptText="HungryBox delivery partners work mostly from mobile. This portal is built to keep shift start, proof capture, and order updates simple even when you are moving between pickups and drop-offs."
+    >
       <motion.div
-        initial={{ scale: 0.94, opacity: 0 }}
+        initial={{ scale: 0.98, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-md space-y-6 rounded-xl border border-pink-300 bg-white p-8 shadow-2xl dark:border-gray-700 dark:bg-gray-900"
+        transition={{ duration: 0.35 }}
+        className="space-y-5"
       >
-        <h2 className="text-center text-3xl font-bold text-pink-600 dark:text-yellow-300">
-          {isSignup ? "Delivery Partner Signup" : "Partner Login"}
-        </h2>
+        <div className="rounded-[28px] border border-pink-100 bg-gradient-to-r from-pink-50 via-orange-50 to-white px-4 py-4 dark:border-white/10 dark:bg-white/5">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-pink-500 dark:text-pink-300">
+            Rider Access
+          </p>
+          <h3 className="mt-2 text-2xl font-black tracking-tight text-slate-950 dark:text-white">
+            {isSignup ? "Delivery Partner Signup" : "Partner Login"}
+          </h3>
+          <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            {isSignup
+              ? "Create your rider account, upload your KYC record, and get ready for OTP-protected shifts."
+              : "Sign in to start your secure shift, manage assigned orders, and keep customers updated in real time."}
+          </p>
+        </div>
 
         <form onSubmit={handleAuth} className="space-y-4">
           {isSignup && (
             <div>
-              <label className="block text-sm font-medium">Name</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Name</label>
               <input
                 type="text"
                 autoComplete="name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                className="mt-1 w-full rounded bg-gray-100 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:bg-gray-800 dark:text-white"
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:ring-2 focus:ring-pink-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                 required
               />
             </div>
@@ -157,14 +178,14 @@ const DeliveryAuth = () => {
 
           {isSignup && (
             <div>
-              <label className="block text-sm font-medium">Phone Number</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Phone Number</label>
               <input
                 type="tel"
                 inputMode="numeric"
                 autoComplete="tel"
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
-                className="mt-1 w-full rounded bg-gray-100 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:bg-gray-800 dark:text-white"
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:ring-2 focus:ring-pink-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                 placeholder="10-digit mobile number"
                 required
               />
@@ -173,18 +194,18 @@ const DeliveryAuth = () => {
 
           {isSignup && (
             <div>
-              <label className="block text-sm font-medium">Aadhaar Number</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Aadhaar Number</label>
               <input
                 type="text"
                 inputMode="numeric"
                 autoComplete="off"
                 value={aadhaarNumber}
                 onChange={(event) => setAadhaarNumber(normalizeAadhaar(event.target.value))}
-                className="mt-1 w-full rounded bg-gray-100 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:bg-gray-800 dark:text-white"
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:ring-2 focus:ring-pink-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                 placeholder="12-digit Aadhaar number"
                 required
               />
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
                 Stored securely as masked metadata plus a protected document record.
               </p>
             </div>
@@ -192,26 +213,26 @@ const DeliveryAuth = () => {
 
           {isSignup && (
             <div>
-              <label className="block text-sm font-medium">Aadhaar Card Image</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Aadhaar Card Image</label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={(event) => setAadhaarImage(event.target.files?.[0] || null)}
-                className="mt-1 w-full rounded bg-gray-100 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 dark:bg-gray-800 dark:text-white"
+                className="mt-2 w-full rounded-2xl border border-dashed border-pink-200 bg-pink-50/70 px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-pink-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                 required
               />
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
                 Upload a clear front image of the Aadhaar card for delivery partner KYC.
               </p>
               {aadhaarPreviewUrl ? (
-                <div className="mt-3 overflow-hidden rounded-2xl border border-pink-200 bg-pink-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                <div className="mt-3 overflow-hidden rounded-[24px] border border-pink-200 bg-pink-50/80 p-3 dark:border-slate-700 dark:bg-slate-900">
                   <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-pink-600 dark:text-pink-300">
                     Aadhaar preview
                   </p>
                   <img
                     src={aadhaarPreviewUrl}
                     alt="Aadhaar card preview"
-                    className="h-40 w-full rounded-xl object-cover"
+                    className="h-44 w-full rounded-2xl object-cover"
                   />
                 </div>
               ) : null}
@@ -219,59 +240,63 @@ const DeliveryAuth = () => {
           )}
 
           <div>
-            <label className="block text-sm font-medium">Email</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Email</label>
             <input
               type="email"
               autoComplete="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="mt-1 w-full rounded bg-gray-100 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:bg-gray-800 dark:text-white"
+              className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:ring-2 focus:ring-pink-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Password</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Password</label>
             <input
               type="password"
               autoComplete={isSignup ? "new-password" : "current-password"}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="mt-1 w-full rounded bg-gray-100 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:bg-gray-800 dark:text-white"
+              className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:ring-2 focus:ring-pink-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
               required
             />
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && (
+            <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/30 dark:bg-rose-950/20 dark:text-rose-300">
+              {error}
+            </p>
+          )}
 
           <motion.button
             whileHover={{ scale: 1.02 }}
             type="submit"
-            className="w-full rounded bg-pink-500 py-2 font-semibold text-white shadow-lg transition duration-300 hover:bg-pink-600"
+            className="w-full rounded-2xl bg-gradient-to-r from-pink-500 to-orange-400 px-4 py-3 font-semibold text-white shadow-[0_18px_40px_-18px_rgba(244,114,182,0.8)] transition duration-300 hover:opacity-95"
             disabled={loading}
           >
-            {loading ? "Please wait..." : isSignup ? "Sign Up" : "Log In"}
+            {loading ? "Please wait..." : isSignup ? "Create Partner Account" : "Log In"}
           </motion.button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-300">
+        <p className="text-center text-sm text-slate-600 dark:text-slate-300">
           {isSignup ? "Already have an account?" : "New delivery partner?"}{" "}
           <button
-            className="text-pink-600 hover:underline dark:text-yellow-300"
+            className="font-semibold text-pink-600 hover:underline dark:text-yellow-300"
             onClick={() => setIsSignup(!isSignup)}
           >
             {isSignup ? "Log In" : "Sign Up"}
           </button>
         </p>
 
-        <p className="mt-2 text-center text-xs text-gray-400">
+        <p className="text-center text-xs text-slate-400 dark:text-slate-500">
           Back to{" "}
-          <Link to="/" className="text-blue-500 underline">
+          <Link to="/" className="font-medium text-pink-500 underline">
             Home
           </Link>
         </p>
       </motion.div>
-    </div>
+    </AuthExperienceShell>
   );
 };
 

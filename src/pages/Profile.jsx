@@ -244,7 +244,7 @@ export default function Profile() {
   );
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.18),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.12),_transparent_24%),linear-gradient(180deg,#fff7f8_0%,#fffdfb_45%,#fff5ef_100%)] px-4 py-24 text-slate-950 dark:bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.12),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(56,189,248,0.12),_transparent_22%),linear-gradient(180deg,#050816_0%,#0f172a_48%,#111827_100%)] dark:text-white sm:px-6">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.18),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.12),_transparent_24%),linear-gradient(180deg,#fff7f8_0%,#fffdfb_45%,#fff5ef_100%)] px-4 pb-28 pt-20 text-slate-950 dark:bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.12),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(56,189,248,0.12),_transparent_22%),linear-gradient(180deg,#050816_0%,#0f172a_48%,#111827_100%)] dark:text-white sm:px-6 md:pt-24">
       <div className="mx-auto max-w-6xl space-y-6">
         <motion.section
           initial={{ opacity: 0, y: 24 }}
@@ -257,14 +257,14 @@ export default function Profile() {
             <div className="absolute right-[-2%] top-4 h-44 w-44 rounded-full bg-orange-400/20 blur-3xl" />
           </div>
 
-          <div className="relative z-10 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="relative z-10 grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
             <div className="space-y-5">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-pink-100">
                 <Sparkles className="h-4 w-4" />
                 Personal hub
               </div>
               <div>
-                <h1 className="text-4xl font-black tracking-tight sm:text-5xl">
+                <h1 className="text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
                   Your profile, delivery details, and live location in one place.
                 </h1>
                 <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-200">
@@ -275,7 +275,7 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
               {profileStats.map((stat) => (
                 <div
                   key={stat.label}
@@ -296,7 +296,7 @@ export default function Profile() {
           </div>
         </motion.section>
 
-        <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
+        <div className="grid gap-5 lg:grid-cols-[340px_1fr]">
           <aside className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)] backdrop-blur dark:border-white/10 dark:bg-slate-900/70">
             <div className="flex flex-col items-center text-center">
               <motion.img
@@ -408,7 +408,7 @@ export default function Profile() {
               </div>
             ) : null}
 
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-2">
               <Field
                 label="Full name"
                 name="name"
@@ -457,7 +457,7 @@ export default function Profile() {
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
                 Instant location snapshot
               </p>
-              <div className="mt-4 grid gap-4 md:grid-cols-3">
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
                 <LocationMetric
                   label="Latitude"
                   value={formatCoordinate(profile.location?.lat)}

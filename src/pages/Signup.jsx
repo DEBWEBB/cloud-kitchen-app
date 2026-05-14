@@ -1,13 +1,16 @@
 import React, { useState } from "react";
-import { auth, db } from "../firebase/firebaseConfig";
-import {
-  GoogleAuthProvider,
-  signInWithPopup,
-  createUserWithEmailAndPassword,
-} from "firebase/auth";
+import { GoogleAuthProvider, createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { ArrowRight, KeyRound, Mail, Sparkles, UserRound } from "lucide-react";
+import toast from "react-hot-toast";
+import { FcGoogle } from "react-icons/fc";
+import { auth, db } from "../firebase/firebaseConfig";
+import AuthExperienceShell from "../components/AuthExperienceShell";
+
+const inputClassName =
+  "w-full rounded-[22px] border border-slate-200 bg-white/90 px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-pink-400 focus:ring-2 focus:ring-pink-400/25 dark:border-slate-700 dark:bg-slate-900/80 dark:text-white dark:placeholder:text-slate-500";
 
 export default function Signup() {
   const [form, setForm] = useState({
@@ -20,29 +23,29 @@ export default function Signup() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSignup = async (e) => {
-    e.preventDefault();
+  const handleSignup = async (event) => {
+    event.preventDefault();
     const { name, email, password, confirmPassword } = form;
 
     if (!name || !email || !password || !confirmPassword) {
-      return setError("Please fill all fields.");
+      setError("Please complete every field before joining.");
+      return;
     }
 
     if (password.length < 6) {
-      return setError("Password must be at least 6 characters.");
+      setError("Password must be at least 6 characters.");
+      return;
     }
 
     if (password !== confirmPassword) {
-      return setError("Passwords do not match.");
+      setError("Passwords do not match.");
+      return;
     }
 
     try {
       setLoading(true);
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      setError("");
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
       await setDoc(doc(db, "users", user.uid), {
@@ -52,10 +55,10 @@ export default function Signup() {
         createdAt: new Date().toISOString(),
       });
 
-      alert("Signup successful!");
+      toast.success("Your account is ready. Welcome to HungryBox.");
       navigate("/profile");
-    } catch (err) {
-      setError(err.message || "Signup failed");
+    } catch (signupError) {
+      setError(signupError.message || "Signup failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -63,6 +66,9 @@ export default function Signup() {
 
   const handleGoogleSignup = async () => {
     const provider = new GoogleAuthProvider();
+    setLoading(true);
+    setError("");
+
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
@@ -74,110 +80,129 @@ export default function Signup() {
         createdAt: new Date().toISOString(),
       });
 
-      alert("Signed in with Google!");
+      toast.success("Signed up with Google.");
       navigate("/profile");
-    } catch (error) {
-      setError("Google Sign-in failed: " + error.message);
+    } catch (signupError) {
+      setError(`Google signup failed: ${signupError.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="relative min-h-screen bg-black overflow-hidden flex items-center justify-center">
-      {/* 🟣 Glowing Animated Blobs */}
-      <motion.div
-        className="absolute w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob z-0"
-        initial={{ x: -200, y: -100 }}
-        animate={{ x: 0, y: 0 }}
-        transition={{ duration: 15, repeat: Infinity, repeatType: "mirror" }}
-      />
-      <motion.div
-        className="absolute w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob z-0"
-        initial={{ x: 300, y: 200 }}
-        animate={{ x: 0, y: 0 }}
-        transition={{ duration: 20, repeat: Infinity, repeatType: "mirror" }}
-      />
-      <motion.div
-        className="absolute w-96 h-96 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob z-0"
-        initial={{ x: -150, y: 300 }}
-        animate={{ x: 0, y: 0 }}
-        transition={{ duration: 25, repeat: Infinity, repeatType: "mirror" }}
-      />
-
-      {/* 💠 Signup Card */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 backdrop-blur-xl bg-white/10 border border-white/20 rounded-xl shadow-2xl max-w-md w-full p-8 text-white"
-      >
-        <h2 className="text-3xl font-bold text-center mb-6 drop-shadow-lg">
-          🍰 Join Cloud Kitchen
-        </h2>
-
-        <form onSubmit={handleSignup} className="space-y-4">
+    <AuthExperienceShell
+      eyebrow="Join HungryBox"
+      title="Create an account that feels as sweet as the orders you’re about to place."
+      subtitle="Save your details, track every delivery, and keep your favourite local bakery picks close at hand."
+      promptTitle="A kinder, brighter start to your next cake-and-delivery habit."
+      promptText="We want the first step to feel warm and welcoming too. Sign up once, then enjoy faster checkouts, clearer delivery updates, and a more personal HungryBox experience."
+    >
+      <form onSubmit={handleSignup} className="space-y-4">
+        <label className="block">
+          <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <UserRound size={16} />
+            Full name
+          </span>
           <input
             type="text"
             autoComplete="name"
-            placeholder="Full Name"
+            placeholder="Your good name"
             value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full px-4 py-2 rounded-md bg-white/20 text-white placeholder-gray-200 focus:ring-2 ring-pink-400 outline-none"
+            onChange={(event) => setForm({ ...form, name: event.target.value })}
+            className={inputClassName}
           />
+        </label>
+
+        <label className="block">
+          <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <Mail size={16} />
+            Email address
+          </span>
           <input
             type="email"
             autoComplete="email"
-            placeholder="Email"
+            placeholder="name@example.com"
             value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className="w-full px-4 py-2 rounded-md bg-white/20 text-white placeholder-gray-200 focus:ring-2 ring-pink-400 outline-none"
+            onChange={(event) => setForm({ ...form, email: event.target.value })}
+            className={inputClassName}
           />
-          <input
-            type="password"
-            autoComplete="new-password"
-            placeholder="Password"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            className="w-full px-4 py-2 rounded-md bg-white/20 text-white placeholder-gray-200 focus:ring-2 ring-pink-400 outline-none"
-          />
-          <input
-            type="password"
-            autoComplete="new-password"
-            placeholder="Confirm Password"
-            value={form.confirmPassword}
-            onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-            className="w-full px-4 py-2 rounded-md bg-white/20 text-white placeholder-gray-200 focus:ring-2 ring-pink-400 outline-none"
-          />
+        </label>
 
-          {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block">
+            <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+              <KeyRound size={16} />
+              Password
+            </span>
+            <input
+              type="password"
+              autoComplete="new-password"
+              placeholder="Create password"
+              value={form.password}
+              onChange={(event) => setForm({ ...form, password: event.target.value })}
+              className={inputClassName}
+            />
+          </label>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-pink-500 hover:bg-pink-600 text-white py-2 rounded-md font-semibold shadow-md hover:shadow-pink-500/50 transition duration-300"
-          >
-            {loading ? "Creating Account..." : "Sign Up"}
-          </button>
-        </form>
+          <label className="block">
+            <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+              <KeyRound size={16} />
+              Confirm password
+            </span>
+            <input
+              type="password"
+              autoComplete="new-password"
+              placeholder="Repeat password"
+              value={form.confirmPassword}
+              onChange={(event) => setForm({ ...form, confirmPassword: event.target.value })}
+              className={inputClassName}
+            />
+          </label>
+        </div>
 
-        {/* 🔁 Login link */}
-        <p className="text-sm text-center mt-4 text-white">
+        {error ? (
+          <div className="rounded-[22px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300">
+            {error}
+          </div>
+        ) : null}
+
+        <motion.button
+          type="submit"
+          whileTap={{ scale: 0.98 }}
+          disabled={loading}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-[24px] bg-gradient-to-r from-pink-500 to-orange-400 px-5 py-4 text-sm font-semibold text-white shadow-[0_18px_36px_-20px_rgba(244,114,182,0.9)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {loading ? "Creating your account..." : "Create HungryBox account"}
+          <ArrowRight size={16} />
+        </motion.button>
+
+        <button
+          type="button"
+          onClick={handleGoogleSignup}
+          disabled={loading}
+          className="inline-flex w-full items-center justify-center gap-3 rounded-[24px] border border-slate-200 bg-white px-5 py-4 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+        >
+          <FcGoogle size={22} />
+          Sign up with Google
+        </button>
+
+        <p className="pt-2 text-center text-sm text-slate-500 dark:text-slate-400">
           Already have an account?{" "}
-          <Link to="/login" className="text-yellow-300 hover:underline">
+          <Link to="/login" className="font-semibold text-slate-900 underline-offset-4 hover:underline dark:text-white">
             Login here
           </Link>
         </p>
+      </form>
 
-        {/* 🟢 Google Signup */}
-        <div className="mt-6 text-center">
-          <p className="text-gray-300">— or —</p>
-          <button
-            onClick={handleGoogleSignup}
-            className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md shadow-md hover:shadow-blue-400/50 transition duration-300"
-          >
-            Sign Up with Google
-          </button>
-        </div>
-      </motion.div>
-    </div>
+      <div className="mt-6 rounded-[26px] border border-white/70 bg-gradient-to-r from-pink-50 to-orange-50 px-4 py-4 dark:border-white/10 dark:bg-gradient-to-r dark:from-pink-500/10 dark:to-orange-400/10">
+        <p className="inline-flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+          <Sparkles size={16} className="text-pink-500" />
+          A sweet note before you begin
+        </p>
+        <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+          Thank you for giving HungryBox a place in your day. We’ll keep the experience warm, local, and joyful from signup to doorstep.
+        </p>
+      </div>
+    </AuthExperienceShell>
   );
 }

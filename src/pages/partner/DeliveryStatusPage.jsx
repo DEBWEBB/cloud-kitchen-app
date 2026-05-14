@@ -317,7 +317,7 @@ export default function DeliveryStatusPage() {
 
   if (loading) {
     return (
-      <div className="page-container pt-28">
+      <div className="page-container pt-24">
         <div className="card flex min-h-[360px] items-center justify-center p-10">
           <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400">
             <Loader2 className="animate-spin" />
@@ -330,7 +330,7 @@ export default function DeliveryStatusPage() {
 
   if (!hasAccess || !order) {
     return (
-      <div className="page-container pt-28">
+      <div className="page-container pt-24">
         <div className="card p-10 text-center">
           <p className="section-title mb-2 text-lg">Unable to access this delivery</p>
           <p className="muted">This order either does not exist or is assigned to another partner.</p>
@@ -342,8 +342,8 @@ export default function DeliveryStatusPage() {
   const deliveryCompleted = String(order?.status || "").toLowerCase() === "delivered";
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 dark:bg-gray-950">
-      <div className="page-container space-y-6">
+    <div className="min-h-screen bg-gray-50 pb-28 pt-20 dark:bg-gray-950 md:pt-24">
+      <div className="page-container space-y-5 md:space-y-6">
         <AnimatePresence>
           {showCompletionCelebration ? (
             <motion.div
@@ -389,7 +389,7 @@ export default function DeliveryStatusPage() {
           ) : null}
         </AnimatePresence>
 
-        <section className="card p-6">
+        <section className="card p-5 sm:p-6">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <span className="chip mb-3 inline-flex bg-primary-soft text-primary-dark dark:bg-pink-900/30 dark:text-pink-300">
@@ -400,17 +400,17 @@ export default function DeliveryStatusPage() {
                 Order ID: <span className="font-mono">{orderId}</span>
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid gap-2 sm:grid-cols-2">
               <button
                 onClick={() => startUpdating(orderId)}
-                className="btn-primary inline-flex items-center gap-2"
+                className="btn-primary inline-flex items-center justify-center gap-2"
               >
                 <LocateFixed size={16} />
                 {isTracking ? "Tracking Active" : "Start Live Tracking"}
               </button>
               <button
                 onClick={stopUpdating}
-                className="btn-ghost inline-flex items-center gap-2"
+                className="btn-ghost inline-flex items-center justify-center gap-2"
               >
                 <Navigation size={16} />
                 Stop Tracking
@@ -419,9 +419,9 @@ export default function DeliveryStatusPage() {
           </div>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+        <section className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
           <div className="space-y-6">
-            <div className="card p-6">
+            <div className="card p-5 sm:p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Order Snapshot</h2>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div className="rounded-2xl bg-gray-50 p-4 dark:bg-gray-800">
@@ -457,9 +457,9 @@ export default function DeliveryStatusPage() {
               </div>
             </div>
 
-            <div className="card p-6">
+            <div className="card p-5 sm:p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Update Status</h2>
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                 {statusOptions.map((option) => (
                   <button
                     key={option}
@@ -468,7 +468,7 @@ export default function DeliveryStatusPage() {
                       handleStatusUpdate(option);
                     }}
                     disabled={saving}
-                    className={`chip capitalize ${
+                    className={`chip w-full justify-center capitalize ${
                       status === option
                         ? "bg-gradient-to-r from-pink-500 to-orange-400 text-white shadow"
                         : "hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -480,7 +480,7 @@ export default function DeliveryStatusPage() {
               </div>
             </div>
 
-            <div className="card p-6">
+            <div className="card p-5 sm:p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -490,31 +490,31 @@ export default function DeliveryStatusPage() {
                     Capture proof photo plus a partner selfie at pickup and again at final handoff for stronger delivery security.
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid gap-2 sm:grid-cols-2">
                   <button
                     onClick={() => setProofStage("pickup")}
-                    className="btn-ghost inline-flex items-center gap-2"
+                    className="btn-ghost inline-flex items-center justify-center gap-2"
                   >
                     <Camera size={16} />
                     {order?.pickupProofUrl ? "Retake Pickup Photo" : "Take Pickup Photo"}
                   </button>
                   <button
                     onClick={() => setProofStage("pickup-selfie")}
-                    className="btn-ghost inline-flex items-center gap-2"
+                    className="btn-ghost inline-flex items-center justify-center gap-2"
                   >
                     <Camera size={16} />
                     {order?.pickupSelfieUrl ? "Retake Pickup Selfie" : "Take Pickup Selfie"}
                   </button>
                   <button
                     onClick={() => setProofStage("delivery")}
-                    className="btn-ghost inline-flex items-center gap-2"
+                    className="btn-ghost inline-flex items-center justify-center gap-2"
                   >
                     <Camera size={16} />
                     {order?.deliveryProofUrl ? "Retake Delivery Photo" : "Take Delivery Photo"}
                   </button>
                   <button
                     onClick={() => setProofStage("delivery-selfie")}
-                    className="btn-ghost inline-flex items-center gap-2"
+                    className="btn-ghost inline-flex items-center justify-center gap-2"
                   >
                     <Camera size={16} />
                     {order?.deliverySelfieUrl ? "Retake Delivery Selfie" : "Take Delivery Selfie"}
@@ -534,7 +534,7 @@ export default function DeliveryStatusPage() {
                     videoConstraints={{
                       facingMode: proofConfig[proofStage]?.facingMode || "environment",
                     }}
-                    className="mt-4 h-[240px] w-full rounded-2xl border border-pink-200 object-cover dark:border-pink-900/40"
+                    className="mt-4 h-[220px] w-full rounded-2xl border border-pink-200 object-cover dark:border-pink-900/40 sm:h-[240px]"
                   />
                   <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                     <button
@@ -555,7 +555,7 @@ export default function DeliveryStatusPage() {
                 </div>
               )}
 
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <div className="rounded-2xl bg-gray-50 p-4 dark:bg-gray-800">
                   <p className="muted">Pickup photo</p>
                   {order?.pickupProofUrl ? (
@@ -615,7 +615,7 @@ export default function DeliveryStatusPage() {
               </div>
             </div>
 
-            <div className="card p-6">
+            <div className="card p-5 sm:p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Confirm Delivery</h2>
               <p className="muted mt-2">
                 Match the customer secret code before marking the order as delivered.
@@ -659,7 +659,7 @@ export default function DeliveryStatusPage() {
               <button
                 onClick={handleConfirmDelivery}
                 disabled={saving || deliveryCompleted}
-                className="btn-primary mt-4 inline-flex items-center gap-2"
+                className="btn-primary mt-4 inline-flex w-full items-center justify-center gap-2 sm:w-auto"
               >
                 <ShieldCheck size={16} />
                 {deliveryCompleted ? "Delivery Completed" : "Confirm Delivery"}
@@ -697,7 +697,7 @@ export default function DeliveryStatusPage() {
                 </span>
               </div>
 
-              <div className="h-[420px]">
+              <div className="h-[280px] sm:h-[360px] lg:h-[420px]">
                 <DeliveryGoogleMap
                   center={{ lat: mapCenter[0], lng: mapCenter[1] }}
                   customerLocation={order.location}
@@ -709,7 +709,7 @@ export default function DeliveryStatusPage() {
               </div>
             </div>
 
-            <div className="card p-6">
+            <div className="card p-5 sm:p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Delivery Notes</h2>
               <div className="mt-4 space-y-3">
                 <div className="flex items-start gap-3 rounded-2xl bg-gray-50 p-4 dark:bg-gray-800">

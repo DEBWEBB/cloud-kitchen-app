@@ -111,137 +111,143 @@ function App() {
       {role !== "delivery" && role !== "admin" ? <MobileBottomNav /> : null}
       {role === "delivery" ? <PartnerHeader /> : <Header />}
 
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/shop" element={<Shop />} />
-          <Route path="/shop/:shopId" element={<ShopDetails />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/about" element={<AboutUs />} />
-          <Route path="/delivery-auth" element={<DeliveryAuth />} />
+      <main
+        className={
+          role !== "delivery" && role !== "admin" ? "mobile-nav-offset md:pb-0" : ""
+        }
+      >
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/shop/:shopId" element={<ShopDetails />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/about" element={<AboutUs />} />
+            <Route path="/delivery-auth" element={<DeliveryAuth />} />
 
-          <Route
-            path="/admin"
-            element={
-              <AdminRoute>
-                <AdminPage />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin-dashboard"
-            element={
-              <AdminRoute>
-                <AdminDashboard />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/shop-connect"
-            element={
-              <AdminRoute>
-                <ShopConnect />
-              </AdminRoute>
-            }
-          />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin-dashboard"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/shop-connect"
+              element={
+                <AdminRoute>
+                  <ShopConnect />
+                </AdminRoute>
+              }
+            />
 
-          <Route path="/partner/dashboard" element={<PartnerDashboard />} />
-          <Route
-            path="/partner/status/:orderId"
-            element={
-              <PartnerRoute>
-                <DeliveryStatusPage />
-              </PartnerRoute>
-            }
-          />
-          <Route path="/partner/order/:orderId" element={<DeliveryStatusPage />} />
-          <Route
-            path="/partner/profile"
-            element={
-              <PartnerRoute>
-                <PartnerProfile />
-              </PartnerRoute>
-            }
-          />
-          <Route
-            path="/partner/earnings"
-            element={
-              <PartnerRoute>
-                <PartnerEarnings />
-              </PartnerRoute>
-            }
-          />
+            <Route path="/partner/dashboard" element={<PartnerDashboard />} />
+            <Route
+              path="/partner/status/:orderId"
+              element={
+                <PartnerRoute>
+                  <DeliveryStatusPage />
+                </PartnerRoute>
+              }
+            />
+            <Route path="/partner/order/:orderId" element={<DeliveryStatusPage />} />
+            <Route
+              path="/partner/profile"
+              element={
+                <PartnerRoute>
+                  <PartnerProfile />
+                </PartnerRoute>
+              }
+            />
+            <Route
+              path="/partner/earnings"
+              element={
+                <PartnerRoute>
+                  <PartnerEarnings />
+                </PartnerRoute>
+              }
+            />
 
-          <Route
-            path="/profile"
-            element={
-              <PrivateRoute>
-                <Profile />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/cart"
-            element={
-              <PrivateRoute>
-                <Cart />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/checkout"
-            element={
-              <PrivateRoute>
-                <Checkout />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/orders"
-            element={
-              <PrivateRoute>
-                <OrderHistory />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/order-history"
-            element={
-              <PrivateRoute>
-                <OrderHistory />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/track/:orderId"
-            element={
-              <PrivateRoute>
-                <OrderHistory />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/success"
-            element={
-              <PrivateRoute>
-                <Success />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/delivery-dashboard"
-            element={
-              <PrivateRoute>
-                <CourierDashboard />
-              </PrivateRoute>
-            }
-          />
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <Profile />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/cart"
+              element={
+                <PrivateRoute>
+                  <Cart />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/checkout"
+              element={
+                <PrivateRoute>
+                  <Checkout />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <PrivateRoute>
+                  <OrderHistory />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/order-history"
+              element={
+                <PrivateRoute>
+                  <OrderHistory />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/track/:orderId"
+              element={
+                <PrivateRoute>
+                  <OrderHistory />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/success"
+              element={
+                <PrivateRoute>
+                  <Success />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/delivery-dashboard"
+              element={
+                <PrivateRoute>
+                  <CourierDashboard />
+                </PrivateRoute>
+              }
+            />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </main>
     </ErrorBoundary>
   );
 }

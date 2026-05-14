@@ -57,9 +57,9 @@ export default function PartnerHeader() {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="sticky top-0 z-[100] border-b border-white/8 bg-slate-950/85 text-white shadow-[0_16px_50px_-28px_rgba(15,23,42,0.85)] backdrop-blur-xl"
       >
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 md:px-6">
-          <div>
-            <h1 className="text-xl font-black tracking-tight md:text-2xl">Delivery Portal</h1>
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 md:px-6">
+          <div className="min-w-0">
+            <h1 className="truncate text-lg font-black tracking-tight md:text-2xl">Delivery Portal</h1>
             <p className="mt-1 hidden text-sm text-slate-400 md:block">
               Real-time delivery, earnings, and proof verification
             </p>
@@ -82,7 +82,7 @@ export default function PartnerHeader() {
 
           <button
             onClick={() => setMenuOpen((value) => !value)}
-            className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10 md:hidden"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10 md:hidden"
             aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={menuOpen}
           >
@@ -105,7 +105,7 @@ export default function PartnerHeader() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -12, scale: 0.98 }}
               transition={{ type: "spring", stiffness: 260, damping: 24 }}
-              className="mx-4 mt-24 rounded-[30px] border border-white/10 bg-slate-950/95 p-4 shadow-2xl"
+              className="mx-4 mt-20 max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-[30px] border border-white/10 bg-slate-950/95 p-4 shadow-2xl"
             >
               <div className="mb-4 flex items-center justify-between">
                 <div>
@@ -123,7 +123,7 @@ export default function PartnerHeader() {
                 </button>
               </div>
 
-              <div className="grid gap-3">
+              <div className="grid gap-3 mobile-safe-bottom">
                 <Link className={navItemClasses("/partner/dashboard")} to="/partner/dashboard">
                   Orders
                 </Link>

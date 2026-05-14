@@ -41,7 +41,7 @@ export default function CustomerDeliveryLiveCard({
   }
 
   return (
-    <div className="rounded-[26px] border border-white/60 bg-white/80 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/70">
+    <div className="rounded-[26px] border border-white/60 bg-white/80 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-gray-900/70 sm:p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">
@@ -56,13 +56,13 @@ export default function CustomerDeliveryLiveCard({
         </div>
 
         {!compact ? (
-          <Link to={`/track/${order.id}`} className="btn-primary text-center">
+          <Link to={`/track/${order.id}`} className="btn-primary w-full text-center sm:w-auto">
             Open Tracker
           </Link>
         ) : null}
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <MiniTile
           icon={Clock3}
           label="ETA"
@@ -99,7 +99,7 @@ export default function CustomerDeliveryLiveCard({
       ) : null}
 
       {compact && (
-        <Link to={`/track/${order.id}`} className="btn-ghost mt-4 inline-flex">
+        <Link to={`/track/${order.id}`} className="btn-ghost mt-4 inline-flex w-full justify-center sm:w-auto">
           <Truck size={16} className="mr-2 inline-flex" />
           Open Tracker
         </Link>
@@ -115,7 +115,7 @@ function MiniTile({ icon: Icon, label, value }) {
         <Icon size={14} />
         {label}
       </div>
-      <p className="mt-2 text-sm font-bold text-gray-900 dark:text-white">{value}</p>
+      <p className="mt-2 text-sm font-bold leading-6 text-gray-900 dark:text-white">{value}</p>
     </div>
   );
 }

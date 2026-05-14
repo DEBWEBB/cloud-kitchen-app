@@ -854,8 +854,8 @@ export default function PartnerDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 dark:bg-gray-950">
-      <div className="page-container space-y-6">
+    <div className="min-h-screen bg-gray-50 pb-28 pt-20 dark:bg-gray-950 md:pt-24">
+      <div className="page-container space-y-5 md:space-y-6">
         {showOnlineSelfieGate ? (
           <div className="fixed inset-0 z-[120] bg-slate-950/65 p-4 backdrop-blur-sm">
             <div className="mx-auto flex min-h-full max-w-2xl items-center justify-center">
@@ -931,17 +931,17 @@ export default function PartnerDashboard() {
             animate={{ opacity: [0.65, 1, 0.7] }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
           />
-          <div className="relative bg-gradient-to-r from-pink-500 via-orange-400 to-amber-300 px-6 py-8 text-white">
+          <div className="relative bg-gradient-to-r from-pink-500 via-orange-400 to-amber-300 px-5 py-6 text-white sm:px-6 sm:py-8">
             <span className="chip inline-flex border border-white/20 bg-white/15 text-white">
               Partner operations
             </span>
-            <h1 className="mt-4 text-3xl font-bold">Delivery Partner Dashboard</h1>
-            <p className="mt-2 text-sm text-white/85">
+            <h1 className="mt-4 text-2xl font-bold sm:text-3xl">Delivery Partner Dashboard</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/85">
               Manage your availability, respond to assigned orders, and keep customers updated in real time.
             </p>
           </div>
 
-          <div className="relative grid gap-4 p-6 md:grid-cols-4">
+          <div className="relative grid gap-4 p-4 sm:grid-cols-2 sm:p-6 xl:grid-cols-4">
             <div className="rounded-2xl bg-gray-50 p-4 dark:bg-gray-800">
               <p className="muted">Partner</p>
               <p className="mt-2 font-semibold text-gray-900 dark:text-white">
@@ -964,7 +964,7 @@ export default function PartnerDashboard() {
             <button
               type="button"
               onClick={toggleOnlineStatus}
-              className="rounded-2xl bg-gray-50 p-4 text-left transition hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
+              className="rounded-2xl bg-gray-50 p-4 text-left transition hover:bg-gray-100 sm:col-span-2 xl:col-span-1 dark:bg-gray-800 dark:hover:bg-gray-700"
             >
               <p className="muted">Availability</p>
               <p className="mt-2 flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
@@ -1002,7 +1002,7 @@ export default function PartnerDashboard() {
                 See how far you are from each shop, whether you are inside the 3 km pickup zone, and if you are ready to receive pickup notifications.
               </p>
             </div>
-            <div className="rounded-2xl bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+            <div className="rounded-2xl bg-gray-50 px-4 py-3 text-sm font-medium leading-6 text-gray-700 dark:bg-gray-800 dark:text-gray-200">
               {partnerLocation
                 ? `${storeInsights.filter((insight) => insight.canReceiveAlerts).length} pickup zone${
                     storeInsights.filter((insight) => insight.canReceiveAlerts).length === 1 ? "" : "s"
@@ -1011,7 +1011,7 @@ export default function PartnerDashboard() {
             </div>
           </div>
 
-          <div className="mt-6 grid gap-5 xl:grid-cols-2">
+          <div className="mt-6 grid gap-4 xl:grid-cols-2">
             {storeInsights.map((insight, index) => (
               <PickupTracerCard
                 key={insight.storeKey}
@@ -1025,9 +1025,9 @@ export default function PartnerDashboard() {
         </motion.section>
 
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="section-title">Assigned Orders</h2>
-            <Link to="/partner/profile" className="btn-ghost">
+            <Link to="/partner/profile" className="btn-ghost justify-center sm:justify-start">
               Edit Partner Profile
             </Link>
           </div>
@@ -1061,7 +1061,7 @@ export default function PartnerDashboard() {
                     </p>
                   ) : null}
                 </div>
-                <div className="flex w-full max-w-xl flex-col gap-3 sm:flex-row">
+                <div className="grid w-full max-w-xl gap-3 sm:grid-cols-2 xl:grid-cols-[190px_1fr_auto_auto]">
                   <div className="w-full sm:max-w-[190px]">
                     <label
                       htmlFor="partner_shift_channel"
@@ -1106,7 +1106,7 @@ export default function PartnerDashboard() {
                     type="button"
                     onClick={handleSendShiftOtp}
                     disabled={shiftSending || !shiftChannel}
-                    className="btn-ghost whitespace-nowrap self-end disabled:cursor-not-allowed disabled:opacity-60"
+                    className="btn-ghost h-fit whitespace-nowrap justify-center self-end disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {shiftSending ? "Sending..." : "Send OTP"}
                   </button>
@@ -1114,7 +1114,7 @@ export default function PartnerDashboard() {
                     type="button"
                     onClick={handleShiftVerification}
                     disabled={shiftVerifying || !shiftOtp.trim()}
-                    className="btn-primary whitespace-nowrap"
+                    className="btn-primary whitespace-nowrap justify-center"
                   >
                     {shiftVerifying ? "Verifying..." : "Verify shift"}
                   </button>
@@ -1144,7 +1144,7 @@ export default function PartnerDashboard() {
                   className="card group relative overflow-hidden border-white/10 bg-gradient-to-br from-slate-900/95 via-slate-900/92 to-slate-800/95 p-6 text-white shadow-[0_28px_80px_-42px_rgba(15,23,42,0.8)]"
                 >
                   <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top_left,_rgba(236,72,153,0.18),_transparent_40%),radial-gradient(circle_at_top_right,_rgba(251,146,60,0.16),_transparent_36%)] opacity-80 transition group-hover:opacity-100" />
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                     <div className="space-y-3">
                       <div className="flex flex-wrap gap-2">
                         <span className="chip bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-300">
@@ -1192,7 +1192,7 @@ export default function PartnerDashboard() {
                       </div>
                     </div>
 
-                    <div className="min-w-[280px] space-y-3">
+                    <div className="space-y-3 xl:min-w-[280px] xl:max-w-[340px]">
                       {order.status === "pending" && !acceptedOrderSet.has(order.id) ? (
                         <div className="grid gap-3 sm:grid-cols-2">
                           <motion.button
@@ -1215,13 +1215,13 @@ export default function PartnerDashboard() {
                           </motion.button>
                         </div>
                       ) : (
-                        <div className="flex flex-wrap gap-2">
+                        <div className="grid gap-2 sm:grid-cols-2">
                           {quickStatuses.map((status) => (
                             <button
                               key={status}
                               onClick={() => handleQuickStatus(order.id, status)}
                               disabled={busyId === order.id}
-                              className={`chip capitalize ${
+                              className={`chip w-full justify-center capitalize ${
                                 order.status === status
                                   ? "bg-gradient-to-r from-pink-500 to-orange-400 text-white"
                                   : "hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -1311,7 +1311,7 @@ function PickupTracerCard({ insight, index, loading, hasLocation }) {
       whileHover={{ y: -4 }}
       className="rounded-[28px] border border-gray-100 bg-gray-50 p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900/60"
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-500 to-orange-400 text-white shadow-lg">
             <Store size={20} />
@@ -1325,7 +1325,7 @@ function PickupTracerCard({ insight, index, loading, hasLocation }) {
             </p>
           </div>
         </div>
-        <span className={`chip ${statusTone}`}>{statusLabel}</span>
+        <span className={`chip self-start ${statusTone}`}>{statusLabel}</span>
       </div>
 
       <div className="mt-6 rounded-[24px] bg-white/80 p-4 dark:bg-gray-950/70">
@@ -1367,7 +1367,7 @@ function PickupTracerCard({ insight, index, loading, hasLocation }) {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-2xl bg-gray-50 px-4 py-3 dark:bg-gray-800/70">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
               Route distance

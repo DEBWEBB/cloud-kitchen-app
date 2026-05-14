@@ -293,8 +293,8 @@ export default function ShopDetails() {
       : "Waiting for first sync";
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.14),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(56,189,248,0.12),_transparent_22%),linear-gradient(180deg,#fff7f5_0%,#ffffff_42%,#fffaf2_100%)] pb-36 pt-24 text-black dark:bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.12),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(56,189,248,0.12),_transparent_22%),linear-gradient(180deg,#050816_0%,#0f172a_48%,#111827_100%)] dark:text-white">
-      <div className="page-container space-y-8">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.14),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(56,189,248,0.12),_transparent_22%),linear-gradient(180deg,#fff7f5_0%,#ffffff_42%,#fffaf2_100%)] pb-40 pt-20 text-black dark:bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.12),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(56,189,248,0.12),_transparent_22%),linear-gradient(180deg,#050816_0%,#0f172a_48%,#111827_100%)] dark:text-white md:pt-24">
+      <div className="page-container space-y-6 md:space-y-8">
         <motion.section
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -306,14 +306,14 @@ export default function ShopDetails() {
             <div className="absolute right-[-2%] top-6 h-44 w-44 rounded-full bg-orange-400/20 blur-3xl" />
           </div>
 
-          <div className="relative z-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="relative z-10 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-5">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-pink-100">
                 <Sparkles className="h-4 w-4" />
                 Local shop menu
               </div>
               <div>
-                <h2 className="text-4xl font-black tracking-tight sm:text-5xl">
+                <h2 className="text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
                   {shopMeta.name}
                 </h2>
                 <p className="mt-2 text-sm font-semibold uppercase tracking-[0.22em] text-pink-100/80">
@@ -339,7 +339,7 @@ export default function ShopDetails() {
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
               {liveStats.map((stat) => (
                 <div
                   key={stat.label}
@@ -357,7 +357,7 @@ export default function ShopDetails() {
         </motion.section>
 
         <section className="grid gap-4 lg:grid-cols-[1fr_auto]">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
             <div className="rounded-[1.8rem] border border-slate-200/80 bg-white/85 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/55">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
                 Rating
@@ -448,7 +448,7 @@ export default function ShopDetails() {
         ) : null}
 
         {effectiveOpsState.security ? (
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
             <div className="rounded-[1.6rem] border border-slate-200/80 bg-white/85 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/55">
               <div className="flex items-center gap-3">
                 <ShieldCheck className="h-4 w-4 text-emerald-500" />
@@ -490,7 +490,7 @@ export default function ShopDetails() {
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
               Hidden for now
             </p>
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {hiddenItems.slice(0, 4).map((item) => (
                 <div
                   key={item.id}
@@ -525,7 +525,7 @@ export default function ShopDetails() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filteredItems.length > 0 ? (
             filteredItems.map((item) => (
               <MenuItemCard key={item.id} item={item} onAdd={addToCart} />
@@ -543,7 +543,7 @@ export default function ShopDetails() {
         </div>
 
         {cart.length > 0 ? (
-          <div className="pointer-events-none fixed bottom-4 left-1/2 z-40 flex w-[94%] max-w-xl -translate-x-1/2 justify-center md:bottom-5">
+          <div className="pointer-events-none fixed bottom-[5.5rem] left-1/2 z-40 flex w-[94%] max-w-xl -translate-x-1/2 justify-center md:bottom-5">
             <button
               type="button"
               className="pointer-events-auto flex w-full items-center justify-between rounded-[1.7rem] border border-white/70 bg-[linear-gradient(135deg,rgba(244,114,182,0.95),rgba(251,146,60,0.95))] px-5 py-4 text-sm font-semibold text-white shadow-[0_22px_40px_rgba(244,114,182,0.3)] backdrop-blur"

@@ -11,7 +11,7 @@ const Cart = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 text-black dark:bg-gray-950 dark:text-white">
+    <div className="min-h-screen bg-gray-50 pt-20 text-black dark:bg-gray-950 dark:text-white md:pt-24">
       <div className="page-container">
         <div className="mb-8">
           <h2 className="section-title">Your Cart</h2>
@@ -24,21 +24,18 @@ const Cart = () => {
             <p className="muted">Browse the menu and add a few favorites first.</p>
           </div>
         ) : (
-          <div className="grid gap-6 pb-36 lg:grid-cols-[1.3fr_0.7fr] lg:pb-0">
+          <div className="grid gap-6 pb-40 lg:grid-cols-[1.3fr_0.7fr] lg:pb-0">
             <div className="space-y-4">
               {cart.map((item) => (
-                <div
-                  key={item.id}
-                  className="card flex flex-col gap-4 p-4 sm:flex-row md:p-5"
-                >
+                <div key={item.id} className="card flex flex-col gap-4 p-4 sm:flex-row md:p-5">
                   <img
                     src={item.image}
                     alt={item.name}
                     className="h-44 w-full rounded-2xl object-cover sm:h-28 sm:w-28"
                   />
                   <div className="flex flex-1 flex-col gap-3">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                      <div className="min-w-0">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                           {item.name}
                         </h3>
@@ -52,9 +49,9 @@ const Cart = () => {
                       </button>
                     </div>
 
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <span className="price">Rs.{item.price}</span>
-                      <div className="flex items-center gap-2 rounded-2xl bg-gray-100 p-1 dark:bg-gray-800">
+                      <div className="flex w-full items-center justify-between gap-2 rounded-2xl bg-gray-100 p-1 dark:bg-gray-800 sm:w-auto sm:justify-start">
                         <button onClick={() => removeFromCart(item.id)} className="btn-ghost px-3 py-1.5">
                           -
                         </button>
@@ -105,7 +102,10 @@ const Cart = () => {
       </div>
 
       {cart.length > 0 ? (
-        <div className="fixed inset-x-0 bottom-[5.6rem] z-40 px-4 lg:hidden">
+        <div
+          className="fixed inset-x-0 z-40 px-4 lg:hidden"
+          style={{ bottom: "calc(5.25rem + env(safe-area-inset-bottom, 0px))" }}
+        >
           <div className="mx-auto flex max-w-md items-center gap-3 rounded-[1.8rem] border border-white/70 bg-white/95 p-3 shadow-[0_20px_40px_rgba(15,23,42,0.14)] backdrop-blur dark:border-gray-800 dark:bg-gray-900/95">
             <div className="min-w-0 flex-1 rounded-2xl bg-gray-100 px-4 py-3 dark:bg-gray-800">
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">

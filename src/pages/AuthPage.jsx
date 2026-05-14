@@ -1,107 +1,76 @@
-import { useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, ShieldCheck, Sparkles, Truck } from "lucide-react";
+import AuthExperienceShell from "../components/AuthExperienceShell";
 
-const AuthPage = () => {
-  const { login, signup } = useAuth();
-  const [isLogin, setIsLogin] = useState(true);
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
-
-  const handleToggle = () => {
-    setError("");
-    setIsLogin(!isLogin);
-  };
-
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    const { email, password } = form;
-
-    const res = isLogin
-      ? await login(email, password)
-      : await signup(email, password);
-
-    if (res.success) {
-      navigate("/"); // ✅ redirect on success
-    } else {
-      setError(res.error);
-    }
-  };
-
+export default function AuthPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 via-pink-200 to-purple-100 dark:from-black dark:via-gray-900 dark:to-gray-800 transition duration-300">
-      <motion.div
-        key={isLogin ? "login" : "signup"}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white/20 dark:bg-white/5 backdrop-blur-md p-8 rounded-xl shadow-xl w-full max-w-md"
-      >
-        <h2 className="text-2xl font-bold text-center text-gray-800 dark:text-white mb-6">
-          {isLogin ? "Welcome Back 👋" : "Create an Account 🚀"}
-        </h2>
-
-        {error && (
-          <div className="bg-red-100 text-red-800 px-4 py-2 rounded mb-4 text-sm">
-            {error}
+    <AuthExperienceShell
+      eyebrow="Start Here"
+      title="Choose how you’d like to enter HungryBox."
+      subtitle="Whether you’re returning for a quick reorder or starting your first sweet delivery, your path is ready."
+      promptTitle="One place to begin, with a little more joy built in."
+      promptText="We want the first screen to feel inviting too. Pick the route that matches you and we’ll take it from there."
+    >
+      <div className="grid gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/75"
+        >
+          <div className="inline-flex rounded-2xl bg-gradient-to-br from-pink-500 to-orange-400 p-3 text-white shadow-md">
+            <Sparkles size={18} />
           </div>
-        )}
+          <h3 className="mt-4 text-xl font-bold text-slate-950 dark:text-white">Customer account</h3>
+          <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Browse local shops, place fresh orders, and keep every delivery update in one calm flow.
+          </p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <Link
+              to="/login"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-[22px] bg-gradient-to-r from-pink-500 to-orange-400 px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_36px_-20px_rgba(244,114,182,0.9)] transition hover:brightness-110"
+            >
+              Login
+              <ArrowRight size={16} />
+            </Link>
+            <Link
+              to="/signup"
+              className="inline-flex flex-1 items-center justify-center rounded-[22px] border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+            >
+              Sign up
+            </Link>
+          </div>
+        </motion.div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="email"
-            name="email"
-            autoComplete="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-2 rounded bg-white/30 dark:bg-gray-800/40 backdrop-blur-md text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
-          <input
-            type="password"
-            name="password"
-            autoComplete={isLogin ? "current-password" : "new-password"}
-            placeholder="Password"
-            value={form.password}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-2 rounded bg-white/30 dark:bg-gray-800/40 backdrop-blur-md text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
-          <button
-            type="submit"
-            className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded transition"
-          >
-            {isLogin ? "Login" : "Sign Up"}
-          </button>
-        </form>
-        <p className="text-center mt-4 text-sm text-gray-500">
-          Are you a delivery partner?{" "}
-          <Link to="/delivery-auth" className="text-blue-500 hover:underline">
-            Login here 🚚
-          </Link>
-        </p>
-
-
-        <p className="mt-4 text-center text-gray-700 dark:text-gray-300">
-          {isLogin ? "New here?" : "Already have an account?"}{" "}
-          <button
-            onClick={handleToggle}
-            className="text-purple-600 hover:underline dark:text-purple-400"
-          >
-            {isLogin ? "Sign Up" : "Login"}
-          </button>
-        </p>
-      </motion.div>
-    </div>
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.08 }}
+          className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/75"
+        >
+          <div className="inline-flex rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-400 p-3 text-white shadow-md">
+            <Truck size={18} />
+          </div>
+          <h3 className="mt-4 text-xl font-bold text-slate-950 dark:text-white">Delivery partner</h3>
+          <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Enter the partner security flow, verify your shift, and manage live deliveries with proof and tracking.
+          </p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <Link
+              to="/delivery-auth"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-[22px] bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
+            >
+              Partner login
+              <ArrowRight size={16} />
+            </Link>
+            <div className="inline-flex flex-1 items-center justify-center gap-2 rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300">
+              <ShieldCheck size={16} />
+              Secure shift access
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </AuthExperienceShell>
   );
-};
-
-export default AuthPage;
+}
